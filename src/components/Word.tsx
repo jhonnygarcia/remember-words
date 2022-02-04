@@ -9,7 +9,7 @@ export default function Word({ word, deleteWord, editWord }: Props) {
   return (
     <>
       <div className="card card-body">
-        <h2 className="card-title">{word.name}</h2>
+        <h3 className="card-title">{word.name}</h3>
         <p>{word.translate}</p>
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <button

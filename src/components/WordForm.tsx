@@ -24,7 +24,7 @@ export default function WordForm({ addNewWord }: Props) {
     name = (name || "").trim();
     translate = (translate || "").trim();
     if (name === "" || translate === "") {
-      alert("Name and Translate is required");
+      alert("El Texto y Traducción son requeridos");
       return;
     }
 
@@ -35,14 +35,14 @@ export default function WordForm({ addNewWord }: Props) {
   return (
     <div className="card card-body bg-secondary rounded-0">
       <form onSubmit={handleNewTask}>
-        <h2 className="card-title">Add Word</h2>
+        <h3 className="card-title">Añadir Texto</h3>
         <input
           ref={(input) => {
             nameInput = input;
           }}
           type="text"
           className="form-control mb-3 rounded-0 shadow-none border-0"
-          placeholder="Word name"
+          placeholder="Texto"
           onChange={handleInputChange}
           name="name"
           value={word.name}
@@ -51,13 +51,13 @@ export default function WordForm({ addNewWord }: Props) {
           name="translate"
           cols={30}
           rows={3}
-          placeholder="Translate"
+          placeholder="Traducción"
           value={word.translate}
           onChange={handleInputChange}
         ></textarea>
         <p>
           <button type="submit" className="btn btn-primary btn-sm">
-            Guadar
+            Guardar
           </button>
         </p>
       </form>

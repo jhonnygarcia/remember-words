@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "name": "Hello",
+    "translate": "Hola",
+    "complete": false
+  },
+  {
+    "id": 2,
+    "name": "Welcome",
+    "translate": "Bienvenido",
+    "complete": false
+  },
+  {
+    "id": 3,
+    "name": "Nice to meet you",
+    "translate": "Encantado de conocerte",
+    "complete": false
+  },
+  {
+    "id": 4,
+    "name": "What's up",
+    "translate": "Que pasa",
+    "complete": false
+  }
+]
