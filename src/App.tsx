@@ -19,7 +19,9 @@ function App({ title = "default title" }: Props) {
     try {
       data = JSON.parse(cache || "") as WordDto[];
       const transform = samples as WordDto[];
-      data = [...data, ...transform];
+      if (!data.some((d) => transform.some((t) => t.id === d.id))) {
+        data = [...data, ...transform];
+      }
     } catch (err) {
       data = [];
     }
@@ -61,11 +63,30 @@ function App({ title = "default title" }: Props) {
   return (
     <div className="bg-light" style={{ height: "100vh" }}>
       <nav className="navbar navbar navbar-light bg-primary">
-        <div className="container">
+        <div className="container justify-content-between">
           <a className="navbar-brand text-white" href="/">
             <img src={logo} alt="React Logo" style={{ width: "4rem" }} />
             {title}
           </a>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="form-inline my-2 my-lg-0"
+          >
+            <div className="input-group mb-3">
+              <input
+                className="form-control form-control-sm"
+                type="search"
+                placeholder="Buscar texto"
+              />
+              <div className="input-group-append">
+                <button className="btn btn-outline-success btn-sm text-white" type="button">
+                  Buscar
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </nav>
       <main className="container p-4">
