@@ -1,19 +1,17 @@
-import { WordDto } from "../models/word.dto";
-import Word from "./Word";
+import { useContext } from 'react';
+import { WordContext } from '../context/WordsState';
+import Word from './Word';
 
-interface Props {
-  words: WordDto[];
-  editWord: (word: WordDto) => void;
-  deleteWord: (word: WordDto) => void;
-}
-export default function WordList({ words, editWord, deleteWord }: Props) {
-  return (
-    <>
-      {words.map((word) => (
-        <div key={word.id} className="col-md-4 mt-2">
-          <Word word={word} editWord={editWord} deleteWord={deleteWord} />
-        </div>
-      ))}
-    </>
-  );
+export default function WordList() {
+    const { search, words, find } = useContext(WordContext);
+    const show = search.length > 0 ? find : words;
+    return (
+        <>
+            {show.map((word) => (
+                <div key={word.id} className="col-md-4 mt-2">
+                    <Word word={word} />
+                </div>
+            ))}
+        </>
+    );
 }

@@ -1,112 +1,42 @@
-import logo from "./logo.svg";
-import "bootswatch/dist/materia/bootstrap.min.css";
-import { useEffect, useState } from "react";
-import { WordDto } from "./models/word.dto";
-import WordList from "./components/WordList";
-import WordForm from "./components/WordForm";
-import samples from "./samples/words.json";
+import logo from './logo.svg';
+import WordList from './components/WordList';
+import WordForm from './components/WordForm';
+import Menu from './components/Menu';
+import { Home } from './components/Home';
+
+import { WordProvider } from './context/WordsState';
+import { Route, Routes } from 'react-router-dom';
 interface Props {
-  title?: string;
+    title?: string;
 }
 
-function App({ title = "default title" }: Props) {
-  const KEY_CACHE_WORDS = "words-translate";
-  const [words, setWords] = useState<WordDto[]>([]);
-
-  useEffect(() => {
-    const cache = localStorage.getItem(KEY_CACHE_WORDS);
-    let data: WordDto[];
-    try {
-      data = JSON.parse(cache || "") as WordDto[];
-      const transform = samples as WordDto[];
-      if (!data.some((d) => transform.some((t) => t.id === d.id))) {
-        data = [...data, ...transform];
-      }
-    } catch (err) {
-      data = [];
-    }
-    data = data.sort((a, b) =>
-      a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-    );
-    setWords(data);
-  }, []);
-
-  const getCurrentTimestamp = (): number => new Date().getTime();
-  const addNewWord = (word: WordDto) => {
-    if (words.some((w) => w.name.toLowerCase() === word.name)) {
-      alert(`El elemento "${word.name}" ya se encuentra en el listado.`);
-      return;
-    }
-    let value = [
-      ...words,
-      { ...word, id: getCurrentTimestamp(), complete: false },
-    ];
-    value = value.sort((a, b) =>
-      a.name > b.name ? 1 : b.name > a.name ? -1 : 0
-    );
-    setWords(value);
-    localStorage.setItem(KEY_CACHE_WORDS, JSON.stringify(value));
-  };
-  const editWord = (word: WordDto) => {
-    const newWords = words.map((current) => {
-      if (current.id === word.id) {
-        current.name = word.name;
-        current.translate = word.translate;
-        current.complete = word.complete;
-      }
-      return current;
-    });
-    setWords(newWords);
-  };
-  const deleteWord = (word: WordDto) =>
-    setWords(words.filter((w) => w.id !== word.id));
-  return (
-    <div className="bg-light" style={{ height: "100vh" }}>
-      <nav className="navbar navbar navbar-light bg-primary">
-        <div className="container justify-content-between">
-          <a className="navbar-brand text-white" href="/">
-            <img src={logo} alt="React Logo" style={{ width: "4rem" }} />
-            {title}
-          </a>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-            }}
-            className="form-inline my-2 my-lg-0"
-          >
-            <div className="input-group mb-3">
-              <input
-                className="form-control form-control-sm"
-                type="search"
-                placeholder="Buscar texto"
-              />
-              <div className="input-group-append">
-                <button className="btn btn-outline-success btn-sm text-white" type="button">
-                  Buscar
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </nav>
-      <main className="container p-4">
-        <div className="row">
-          <div className="col-md-3">
-            <WordForm addNewWord={addNewWord} />
-          </div>
-          <div className="col-md-9">
+export const MainWords = () => {
+    return (
+        <main className="container-fluid p-4">
             <div className="row">
-              <WordList
-                words={words}
-                editWord={editWord}
-                deleteWord={deleteWord}
-              />
+                <div className="col-md-3">
+                    <WordForm />
+                </div>
+                <div className="col-md-9">
+                    <div className="row">
+                        <WordList />
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </main>
-    </div>
-  );
-}
+        </main>
+    );
+};
 
-export default App;
+export const App = ({ title = 'default title' }: Props) => {
+    return (
+        <div className="bg-light" style={{ height: '100vh' }}>
+            <WordProvider>
+                <Menu title={title} logo={logo} />
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/main" element={<MainWords />} />
+                </Routes>
+            </WordProvider>
+        </div>
+    );
+};
