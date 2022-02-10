@@ -1,11 +1,17 @@
-import { ChangeEvent, FormEvent, useContext, useEffect, useState } from 'react';
-import { WordContext } from '../context/WordsState';
-import { WordDto } from '../models/word.dto';
-import { wordEdit$, cleanWordEdit } from '../subjects/word.subject';
+import React from 'react';
+
+export default function WordForm() {
+    return <div>WordForm</div>;
+}
+
+/*import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { WordDto } from '../../common/dto';
+import { useStateValue } from '../../context/WordsState';
+import { wordEdit$, cleanWordEdit } from '../../subscribers/edit-word.subscriber';
 
 type HandleInputChange = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 export default function WordForm() {
-    const { addWord, editWord } = useContext(WordContext);
+    const { addWord, editWord } = useStateValue();
     const initialState = {
         name: '',
         translate: '',
@@ -92,3 +98,4 @@ export default function WordForm() {
         </div>
     );
 }
+*/

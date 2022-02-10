@@ -1,0 +1,5 @@
+form.form-login .form-control.is-valid:focus,
+form.form-login .form-control.is-invalid:focus {
+    border-color: none;
+    box-shadow: inset 0 -2px 0 #2196f3;
+}
