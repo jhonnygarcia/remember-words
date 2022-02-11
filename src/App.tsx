@@ -6,7 +6,7 @@ import { Home } from './pages/home/Home';
 import { MainPage } from './pages/main/MainPage';
 import { useStateValue } from './context/WordsState';
 import { useState } from 'react';
-import { ConfigModal } from './pages/modal/ConfigModal';
+import { ConfigModal } from './pages/main/ConfigModal';
 
 interface Props {
     title?: string;

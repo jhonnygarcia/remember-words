@@ -3,7 +3,7 @@ import { createContext, FC, useContext, useReducer } from 'react';
 import { appReducer, initialState } from './AppReducer';
 import { IWordContext } from '../common/dto/context.dto';
 import { WordDto } from '../common/dto/word.dto';
-import AppService from './app.service';
+
 export const StateContext = createContext<IWordContext>(initialState);
 
 export const StateProvider: FC = ({ children }) => {
@@ -52,7 +52,7 @@ export const StateProvider: FC = ({ children }) => {
                 setToken,
                 setWords,
                 httpClient: state.httpClient,
-                appService: state.appService
+                appService: state.appService,
             }}
         >
             {children}

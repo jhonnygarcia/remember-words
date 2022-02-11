@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { environment } from '../../environment';
+import { environment } from '../environment';
 
 const checkNotifications = (): {
     hasSuport: boolean,

@@ -2,15 +2,15 @@ import { ChangeEvent, FormEvent, useState } from 'react';
 
 import moment from 'moment';
 import { toast } from 'react-toastify';
-import { Modal, ButtonGroup, ToggleButton } from 'react-bootstrap';
+import { Form, Modal, ButtonGroup, ToggleButton, Spinner } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBell } from '@fortawesome/free-solid-svg-icons';
 
 import { helper } from '../../common/helpers.function';
 import { useStateValue } from '../../context/WordsState';
-import { ButtonLock } from '../../components';
-import { checkNotifications, subriberPushMessages } from './notifications';
+import { checkNotifications, subriberPushMessages } from '../webpush.utility';
 import { registerServiceWorker } from '../../serviceWorker';
+import { Button } from 'react-bootstrap';
 
 interface Props {
     show: boolean;
@@ -29,6 +29,7 @@ interface StateConfigModal {
     active: string;
     dirtyrememberDays: boolean;
     loading: boolean;
+    saving: boolean;
 }
 export const ConfigModal = ({ show, close }: Props) => {
     const initialState = {
@@ -38,6 +39,7 @@ export const ConfigModal = ({ show, close }: Props) => {
         endRemember: null,
         dirtyrememberDays: false,
         loading: false,
+        saving: false,
     };
     const [state, setState] = useState<StateConfigModal>(initialState);
     const { appService, httpClient } = useStateValue();
@@ -95,12 +97,18 @@ export const ConfigModal = ({ show, close }: Props) => {
         }
 
         if (checkNotify.permission == 'denied') {
-            toast.info('Acceso denegado a las notificaciones, cambie los permisos para permitir acceso a esta pagína');
+            toast.info(
+                'Acceso denegado a las notificaciones, cambie los permisos para permitir acceso a esta pagína',
+            );
             return false;
         }
 
         if (checkNotify.permission == 'granted') {
             await subriberPushMessages(serviceWorkerRegister, httpClient);
+            new Notification('Remember Words', {
+                icon: '/img/remember_128.png',
+                body: '¡Notificaciones habilitadas!',
+            });
             return true;
         }
         const permision = await Notification.requestPermission();
@@ -112,7 +120,9 @@ export const ConfigModal = ({ show, close }: Props) => {
             });
             return true;
         }
-        toast.info('Acceso denegado a las notificaciones, no es posible habilitar las notificaciones');
+        toast.info(
+            'Acceso denegado a las notificaciones, no es posible habilitar las notificaciones',
+        );
         return false;
     };
     const onSubmit = async (e: FormEvent) => {
@@ -161,7 +171,6 @@ export const ConfigModal = ({ show, close }: Props) => {
     };
     const getClassForm = (name: string) => {
         const form: any = { ...state };
-        console.log(name, form);
         const dirty: boolean = form[`dirty${name}`];
         const value: string = (form[name] || '').toString();
         if (dirty) {
@@ -184,90 +193,118 @@ export const ConfigModal = ({ show, close }: Props) => {
         setState({ ...state, hasNotify: false, loading: false });
     };
     return (
-        <Modal backdrop="static" onShow={getConfig} show={show} onHide={closeButton} onEscapeKeyDown={keyBoardEvent}>
-            <Modal.Header closeButton>
+        <Modal
+            backdrop="static"
+            onShow={getConfig}
+            show={show}
+            onHide={closeButton}
+            onEscapeKeyDown={keyBoardEvent}
+        >
+            <Modal.Header closeButton={!state.loading}>
                 <Modal.Title>Notificaciones</Modal.Title>
             </Modal.Header>
-            <form onSubmit={onSubmit}>
-                <Modal.Body>
-                    <div className="row d-flex align-items-center">
-                        <label className="form-label col">
-                            Recordarme:{' '}
-                            {state.endRemember && (
-                                <span className="text-muted fs-7 fst-italic">(hasta: {state.endRemember})</span>
-                            )}
-                        </label>
-                    </div>
-                    <div className="row">
-                        <div className="col">
-                            <input
-                                type="number"
-                                min={1}
-                                max={30}
-                                name="rememberDays"
-                                onChange={changeInput}
-                                value={state.rememberDays}
-                                className={getClassForm('rememberDays')}
-                                placeholder="Dias"
-                            />
-                            <div className="invalid-feedback">Este campo es requerido</div>
+            <Form onSubmit={onSubmit}>
+                <fieldset disabled={state.loading}>
+                    <Modal.Body>
+                        <div className="row d-flex align-items-center">
+                            <label className="form-label col">
+                                Recordarme:{' '}
+                                {state.endRemember && (
+                                    <span className="text-muted fs-7 fst-italic">
+                                        (hasta: {state.endRemember})
+                                    </span>
+                                )}
+                            </label>
                         </div>
-                    </div>
-                    <div className="row mt-3">
-                        <label className="form-label col">Activo:</label>
-                    </div>
-                    <div className="row">
-                        <div className="col">
-                            <ButtonGroup>
-                                {radios.map((radio, idx) => (
-                                    <ToggleButton
-                                        key={idx}
-                                        id={`radio-${idx}`}
-                                        type="radio"
-                                        variant={idx % 2 ? 'outline-primary' : 'outline-primary'}
-                                        name="radio"
-                                        value={radio.value}
-                                        checked={state.active === radio.value}
-                                        onChange={(e) => setState({ ...state, active: e.currentTarget.value })}
-                                    >
-                                        {radio.name}
-                                    </ToggleButton>
-                                ))}
-                            </ButtonGroup>
+                        <div className="row">
+                            <div className="col">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={30}
+                                    name="rememberDays"
+                                    onChange={changeInput}
+                                    value={state.rememberDays}
+                                    className={getClassForm('rememberDays')}
+                                    placeholder="Dias"
+                                />
+                                <div className="invalid-feedback">Este campo es requerido</div>
+                            </div>
                         </div>
-                    </div>
-                </Modal.Body>
-                <Modal.Footer className={state.hasNotify ? 'd-flex justify-content-between' : 'd-flex'}>
-                    {state.hasNotify && (
-                        <ButtonLock
-                            className="btn btn-outline-warning"
-                            loading={state.loading}
-                            name="Activar"
-                            type="button"
-                            click={forzarNotificaciones}
-                        >
-                            <FontAwesomeIcon style={{ marginRight: '0.313rem' }} icon={faBell} size="1x" />
-                        </ButtonLock>
-                    )}
-                    <div className={state.hasNotify ? 'd-flex justify-content-end' : 'd-flex'}>
-                        <ButtonLock
-                            variant="secondary"
-                            loading={state.loading}
-                            name="Cancelar"
-                            type="button"
-                            withoutIcon={true}
-                            click={close}
-                        />
-                        <ButtonLock
-                            style={{ marginLeft: '0.625rem' }}
-                            variant="primary"
-                            loading={state.loading}
-                            name="Guardar"
-                            type="submit"
-                        />
-                    </div>
-                </Modal.Footer>
-            </form>
+                        <div className="row mt-3">
+                            <label className="form-label col">Activo:</label>
+                        </div>
+                        <div className="row">
+                            <div className="col">
+                                <ButtonGroup>
+                                    {radios.map((radio, idx) => (
+                                        <ToggleButton
+                                            key={idx}
+                                            id={`radio-${idx}`}
+                                            type="radio"
+                                            variant={
+                                                idx % 2 ? 'outline-primary' : 'outline-primary'
+                                            }
+                                            name="radio"
+                                            value={radio.value}
+                                            checked={state.active === radio.value}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...state,
+                                                    active: e.currentTarget.value,
+                                                })
+                                            }
+                                        >
+                                            {radio.name}
+                                        </ToggleButton>
+                                    ))}
+                                </ButtonGroup>
+                            </div>
+                        </div>
+                    </Modal.Body>
+                    <Modal.Footer
+                        className={state.hasNotify ? 'd-flex justify-content-between' : 'd-flex'}
+                    >
+                        {state.hasNotify && (
+                            <Button
+                                variant="outline-warning"
+                                type="button"
+                                onClick={forzarNotificaciones}
+                            >
+                                <FontAwesomeIcon
+                                    style={{ marginRight: '0.313rem' }}
+                                    icon={faBell}
+                                    size="1x"
+                                />{' '}
+                                Activar
+                            </Button>
+                        )}
+                        <div className={state.hasNotify ? 'd-flex justify-content-end' : 'd-flex'}>
+                            <Button variant="secondary" type="button" onClick={close}>
+                                Cancelar
+                            </Button>
+                            <Button
+                                style={{ marginLeft: '0.625rem' }}
+                                variant="primary"
+                                type="submit"
+                            >
+                                {state.saving && (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                        />{' '}
+                                    </>
+                                )}
+                                Guardar
+                            </Button>
+                        </div>
+                    </Modal.Footer>
+                </fieldset>
+            </Form>
         </Modal>
     );
 };

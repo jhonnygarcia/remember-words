@@ -5,7 +5,7 @@ import { createHttpClient } from '../http-comon';
 import AppService from "./app.service";
 
 type WORDS_ACTIONS = 'ADD_WORD' | 'EDIT_WORD' | 'DELETE_WORD'
-    | 'SET_TOKEN' | 'SET_WORDS';
+    | 'SET_TOKEN' | 'SET_WORDS' | 'REFRESH_WORDS';
 
 const axiosInstance = createHttpClient();
 
@@ -24,10 +24,6 @@ export const initialState = {
 };
 
 const getCurrentTimestamp = (): number => new Date().getTime();
-const stripSpecialChars = (text: string): string => {
-    text = text == null ? '' : text;
-    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-};
 
 const pushMessage = (word: WordDto) => {
 

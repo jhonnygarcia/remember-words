@@ -5,6 +5,6 @@ export interface WordDto {
     each_minutes: number;
     repeat_remember: number;
     complete: boolean;
-    completed: Date;
+    completed_at: Date;
     created_at: Date;
 }
