@@ -16,7 +16,7 @@ ReactDOM.render(
     <React.StrictMode>
         <StateProvider>
             <BrowserRouter>
-                <App title="Thiaguito" />
+                <App title="Learning words" />
                 <ToastContainer
                     position="top-right"
                     autoClose={5000}

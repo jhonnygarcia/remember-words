@@ -5,7 +5,7 @@ const checkNotifications = (): {
     hasSuport: boolean,
     permission: 'granted' | 'denied' | 'default'
 } => {
-    if (!window.Notification) {
+    if (Notification == null || Notification == undefined) {
         return { hasSuport: false, permission: 'default' };
     }
     if (Notification.permission === 'granted') {
@@ -29,7 +29,7 @@ const subriberPushMessages = async (serviceWorkerRegister: ServiceWorkerRegistra
         userVisibleOnly: true,
         applicationServerKey: publicKey,
     });
-    
+
     await httpClient.post('/api/subscribe', {
         action: 'subscribe',
         subscription,

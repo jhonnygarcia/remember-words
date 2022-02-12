@@ -27,10 +27,10 @@ export const ConfirmModal = ({ show, title, children, okAction, cancelAction }: 
                 </Modal.Header>
                 <Modal.Body>{children}</Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={cancelAction} variant="secondary">
+                    <Button onClick={cancelAction} disabled={state.loading} variant="secondary">
                         Cancelar
                     </Button>
-                    <Button onClick={confirmOk} variant="primary">
+                    <Button onClick={confirmOk} disabled={state.loading} variant="primary">
                         {state.loading && (
                             <>
                                 <Spinner

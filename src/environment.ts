@@ -3,5 +3,5 @@ interface AppConfig {
 }
 export const environment: AppConfig = {
     serverUri: window.location.origin
-    // serverUri: 'http://localhost:5001'
+    //serverUri: 'http://localhost:5001'
 };

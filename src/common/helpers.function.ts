@@ -65,11 +65,22 @@ const isValid = <T>(controls: FormControlValue<T>[]): boolean => {
         return String(value).trim().toString().length == 0;
     });
 };
-const showMsgRequest = (res: { success: boolean, response: any }, statusFailed: number[],
-    actionSuccess?: () => void): void => {
+const showMsgRequest = (res: { success: boolean, response: any }, extra?: {
+    statusFailed: number[],
+    actionSuccess?: () => void,
+    autoClose?: number
+}): void => {
+    const statusFailed = extra?.statusFailed || [];
     if (res.success) {
-        toast.success('Operación realizada exitosamente');
-        if (actionSuccess) actionSuccess();
+        if (extra?.autoClose) {
+            toast.success('Operación realizada exitosamente', {
+                autoClose: extra?.autoClose
+            });
+        } else {
+            toast.success('Operación realizada exitosamente');
+        }
+
+        if (extra?.actionSuccess) extra.actionSuccess();
     } else if (statusFailed.length > 0 && statusFailed.includes(res.response.status)) {
         toast.warn(res.response.data.message);
     } else {

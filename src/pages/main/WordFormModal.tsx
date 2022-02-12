@@ -46,18 +46,14 @@ export const WordFormModal = ({ refreshWords, wordId, show, close }: Props) => {
             each_minutes: { ...state.each_minutes, dirty: true },
             repeat_remember: { ...state.repeat_remember, dirty: true },
         });
-        const isValid = helper.isValid([
-            state.text,
-            state.translation,
-            state.each_minutes,
-            state.repeat_remember,
-        ]);
+        const isValid = helper.isValid([state.text, state.translation]);
         if (!isValid) return;
 
         setState({ ...state, loading: true, saving: true });
         const payload = {
-            each_minutes: Number(state.each_minutes.value),
-            repeat_remember: Number(state.repeat_remember.value),
+            each_minutes: state.each_minutes.value == '' ? undefined : state.each_minutes.value,
+            repeat_remember:
+                state.repeat_remember.value == '' ? undefined : state.repeat_remember.value,
             text: state.text.value,
             translation: state.translation.value,
         };
@@ -65,13 +61,16 @@ export const WordFormModal = ({ refreshWords, wordId, show, close }: Props) => {
             request: wordId ? appService.editWord(wordId, payload) : appService.addWord(payload),
         });
         if (!wordId) {
-            setState(initialState);
+            setState(res.success ? initialState : { ...state, loading: false, saving: false });
         } else {
             setState({ ...state, loading: false, saving: false });
         }
-        setState(!wordId ? initialState : { ...state, loading: false, saving: false });
-        helper.showMsgRequest(res, [400], () => {
-            refreshWords();
+
+        helper.showMsgRequest(res, {
+            statusFailed: [400],
+            actionSuccess: () => {
+                refreshWords();
+            },
         });
     };
     const getWord = async () => {
@@ -163,33 +162,26 @@ export const WordFormModal = ({ refreshWords, wordId, show, close }: Props) => {
                                 <div className="col">
                                     <input
                                         type="number"
-                                        min={10}
+                                        min={1}
                                         max={60}
                                         name="each_minutes"
                                         onChange={handleInputChange}
                                         value={state.each_minutes.value}
-                                        className={
-                                            'form-control ' + helper.classValid(state.each_minutes)
-                                        }
+                                        className="form-control"
                                         placeholder="Minutos"
                                     />
-                                    <div className="invalid-feedback">Requerido</div>
                                 </div>
                                 <div className="col">
                                     <input
                                         type="number"
-                                        min={3}
+                                        min={1}
                                         max={30}
                                         name="repeat_remember"
                                         onChange={handleInputChange}
                                         value={state.repeat_remember.value}
-                                        className={
-                                            'form-control ' +
-                                            helper.classValid(state.repeat_remember)
-                                        }
+                                        className="form-control"
                                         placeholder="Repeticiones"
                                     />
-                                    <div className="invalid-feedback">Requerido</div>
                                 </div>
                             </div>
                         </div>

@@ -1,7 +1,8 @@
-import { Navbar } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import './Menu.css';
+import { Container, Nav, Navbar, Offcanvas } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGear, faPowerOff } from '@fortawesome/free-solid-svg-icons';
+import { faPowerOff, faUser, faHouse, faBell } from '@fortawesome/free-solid-svg-icons';
 import { MouseEvent, useEffect, useState } from 'react';
 import { useStateValue } from '../context/WordsState';
 import { IdentityInfo } from '../common/dto/identity-info';
@@ -13,8 +14,10 @@ interface Props {
 export const Menu = ({ title, openConfig }: Props) => {
     const initialState = {
         name: '',
+        show: false,
     };
     const [state, setState] = useState(initialState);
+    const navigation = useNavigate();
     const { appService, setToken } = useStateValue();
     const userProfile = async () => {
         const res = await appService.userProfile();
@@ -24,42 +27,106 @@ export const Menu = ({ title, openConfig }: Props) => {
             name: profile.login,
         });
     };
-    const logout = async (e: MouseEvent) => {
-        e.preventDefault();
+    const logout = async () => {
         await appService.logout();
         setToken('');
+    };
+    const cancelLink = (e: MouseEvent, to?: string) => {
+        e.preventDefault();
+        setState({ ...state, show: false });
+        if (to) navigation(to);
     };
     useEffect(() => {
         userProfile();
     }, []);
     return (
-        <Navbar className="navbar navbar-expand-lg navbar-dark bg-primary">
-            <div className="container-fluid">
-                <Link className="navbar-brand" to="/">
-                    {title}
-                </Link>
-                <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                <Navbar.Collapse className="collapse navbar-collapse" id="basic-navbar-nav">
-                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li className="nav-item">
-                            <Link
-                                onClick={openConfig}
-                                title="Notificaciones"
-                                className="nav-link"
-                                to="/main"
-                            >
-                                <FontAwesomeIcon icon={faGear} size="2x" />
-                            </Link>
-                        </li>
-                    </ul>
-                    <Navbar.Text className="fs-5">
-                        <span className="font-monospace">{state.name}</span>{' '}
-                        <Link to="/" onClick={logout}>
-                            <FontAwesomeIcon icon={faPowerOff} />
-                        </Link>
-                    </Navbar.Text>
-                </Navbar.Collapse>
-            </div>
+        <Navbar variant="dark" expand={false} bg="primary">
+            <Container fluid>
+                <Navbar.Brand>{title}</Navbar.Brand>
+                <Navbar.Toggle
+                    onClick={() => {
+                        setState({ ...state, show: true });
+                    }}
+                    aria-controls="responsive-navbar-nav"
+                />
+                <Navbar.Offcanvas
+                    show={state.show}
+                    id="offcanvasNavbar"
+                    aria-labelledby="offcanvasNavbarLabel"
+                    placement="start"
+                    onHide={() => {
+                        setState({ ...state, show: false });
+                    }}
+                >
+                    <Offcanvas.Header closeButton>
+                        <Offcanvas.Title id="offcanvasNavbarLabel">{title}</Offcanvas.Title>
+                    </Offcanvas.Header>
+
+                    <Offcanvas.Body>
+                        <Navbar.Text className="fs-5 align-items-center">
+                            <FontAwesomeIcon className="icon-border-radios" icon={faUser} />{' '}
+                            <span className="font-bold font-monospace">{state.name}</span>
+                        </Navbar.Text>
+                        <Nav className="me-auto  mt-3">
+                            <div className="row mb-3">
+                                <div className="col-auto row-menu-link">
+                                    <Nav.Link
+                                        href="/"
+                                        className="fs-5"
+                                        onClick={(e) => {
+                                            cancelLink(e, '/');
+                                        }}
+                                    >
+                                        <FontAwesomeIcon
+                                            className="icon-border-radios"
+                                            icon={faHouse}
+                                        />{' '}
+                                        Home
+                                    </Nav.Link>
+                                </div>
+                            </div>
+
+                            <div className="row mb-3">
+                                <div className="col-auto row-menu-link">
+                                    <Nav.Link
+                                        href="/"
+                                        className="fs-5"
+                                        onClick={(e) => {
+                                            cancelLink(e);
+                                            openConfig();
+                                        }}
+                                    >
+                                        <FontAwesomeIcon
+                                            className="icon-border-radios"
+                                            icon={faBell}
+                                        />{' '}
+                                        Notificaciones
+                                    </Nav.Link>
+                                </div>
+                            </div>
+
+                            <div className="row mb-3">
+                                <div className="col-auto row-menu-link">
+                                    <Nav.Link
+                                        href="/"
+                                        className="fs-5"
+                                        onClick={(e) => {
+                                            cancelLink(e);
+                                            logout();
+                                        }}
+                                    >
+                                        <FontAwesomeIcon
+                                            className="icon-border-radios"
+                                            icon={faPowerOff}
+                                        />{' '}
+                                        Cerrar sesión
+                                    </Nav.Link>
+                                </div>
+                            </div>
+                        </Nav>
+                    </Offcanvas.Body>
+                </Navbar.Offcanvas>
+            </Container>
         </Navbar>
     );
 };

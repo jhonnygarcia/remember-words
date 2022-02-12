@@ -105,19 +105,13 @@ export const ConfigModal = ({ show, close }: Props) => {
 
         if (checkNotify.permission == 'granted') {
             await subriberPushMessages(serviceWorkerRegister, httpClient);
-            new Notification('Remember Words', {
-                icon: '/img/remember_128.png',
-                body: '¡Notificaciones habilitadas!',
-            });
+            toast.success('¡Notificaciones habilitadas!');
             return true;
         }
         const permision = await Notification.requestPermission();
         if (permision === 'granted') {
             await subriberPushMessages(serviceWorkerRegister, httpClient);
-            new Notification('Remember Words', {
-                icon: '/img/remember_128.png',
-                body: '¡Notificaciones habilitadas!',
-            });
+            toast.success('¡Notificaciones habilitadas!');
             return true;
         }
         toast.info(

@@ -1,8 +1,9 @@
 export interface CreateEditWordDto {
-    text: string;
-    translation: string;
-    each_minutes: number;
-    repeat_remember: number;
+    text?: string;
+    translation?: string;
+    each_minutes?: number | string;
+    repeat_remember?: number | string;
+    complete?: boolean;
 }
 export interface WherePagedDto {
     search?: string;
