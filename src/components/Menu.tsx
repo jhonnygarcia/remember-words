@@ -3,42 +3,34 @@ import { Container, Nav, Navbar, Offcanvas } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPowerOff, faUser, faHouse, faBell } from '@fortawesome/free-solid-svg-icons';
-import { MouseEvent, useEffect, useState } from 'react';
+import { MouseEvent, useState } from 'react';
 import { useStateValue } from '../context/WordsState';
-import { IdentityInfo } from '../common/dto/identity-info';
+
 interface Props {
     title: string;
     openConfig: () => void;
+    afterLogout: () => void;
 }
 
-export const Menu = ({ title, openConfig }: Props) => {
+export const Menu = ({ afterLogout, title, openConfig }: Props) => {
     const initialState = {
-        name: '',
         show: false,
     };
     const [state, setState] = useState(initialState);
     const navigation = useNavigate();
-    const { appService, setToken } = useStateValue();
-    const userProfile = async () => {
-        const res = await appService.userProfile();
-        const profile = res.data as IdentityInfo;
-        setState({
-            ...state,
-            name: profile.login,
-        });
-    };
+    const { appService, user, setToken, setUser } = useStateValue();
     const logout = async () => {
         await appService.logout();
         setToken('');
+        setUser(null);
+        afterLogout();
+        navigation('/login');
     };
     const cancelLink = (e: MouseEvent, to?: string) => {
         e.preventDefault();
         setState({ ...state, show: false });
         if (to) navigation(to);
     };
-    useEffect(() => {
-        userProfile();
-    }, []);
     return (
         <Navbar variant="dark" expand={false} bg="primary">
             <Container fluid>
@@ -65,7 +57,7 @@ export const Menu = ({ title, openConfig }: Props) => {
                     <Offcanvas.Body>
                         <Navbar.Text className="fs-5 align-items-center">
                             <FontAwesomeIcon className="icon-border-radios" icon={faUser} />{' '}
-                            <span className="font-bold font-monospace">{state.name}</span>
+                            <span className="font-bold font-monospace">{user?.login}</span>
                         </Navbar.Text>
                         <Nav className="me-auto  mt-3">
                             <div className="row mb-3">

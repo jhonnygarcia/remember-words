@@ -1,7 +1,8 @@
 import { environment } from './environment';
 import axios from 'axios';
 
-export const createHttpClient = (token?: string) => {
+export const createHttpClient = (accessToken?: string) => {
+    const token = accessToken || localStorage.getItem(environment.keyTokenStorage)
     const headers: any = {
         "Content-type": "application/json"
     };

@@ -5,8 +5,14 @@ import { helper } from '../common/helpers.function';
 class AppService {
     constructor(private httpClient: AxiosInstance) { }
 
-    async userProfile(): Promise<AxiosResponse> {
-        return await this.httpClient.get('/auth/userinfo');
+    async userProfile(token?: string | null): Promise<AxiosResponse> {
+        if (token) {
+            return await this.httpClient.get('/auth/userinfo', {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+        } else {
+            return await this.httpClient.get('/auth/userinfo');
+        }
     }
     async logout(): Promise<AxiosResponse> {
         const response = await this.httpClient.get('/auth/logout');
