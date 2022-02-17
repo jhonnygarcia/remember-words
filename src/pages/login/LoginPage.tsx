@@ -83,7 +83,7 @@ export const LoginPage = ({ loggedinOk }: Props) => {
                     <div className="row justify-content-sm-center h-100">
                         <div className="col-xxl-4 col-xl-5 col-lg-5 col-md-7 col-sm-9">
                             <div className="text-center my-5">
-                                <img src="/img/remember_512.png" alt="logo" width="100" />
+                                <img src="/img/icons/icon_x512.png" alt="logo" width="120" />
                             </div>
                             <div className="card shadow-lg">
                                 <div className="card-body p-5">
