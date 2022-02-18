@@ -9,28 +9,29 @@ import { useStateValue } from '../context/WordsState';
 interface Props {
     title: string;
     openConfig: () => void;
-    afterLogout: () => void;
 }
 
-export const Menu = ({ afterLogout, title, openConfig }: Props) => {
+export const Menu = ({ title, openConfig }: Props) => {
     const initialState = {
         show: false,
     };
     const [state, setState] = useState(initialState);
     const navigation = useNavigate();
-    const { appService, user, setToken, setUser } = useStateValue();
-    const logout = async () => {
+    const { appService, userToken, setUserToken } = useStateValue();
+
+    const logout = async (e: MouseEvent) => {
+        e.preventDefault();
+
+        setUserToken(null);
+        setState({ ...state, show: false });
         await appService.logout();
-        setToken('');
-        setUser(null);
-        afterLogout();
         navigation('/login');
     };
-    const cancelLink = (e: MouseEvent, to?: string) => {
+    const notificationClick = (e: MouseEvent) => {
         e.preventDefault();
-        setState({ ...state, show: false });
-        if (to) navigation(to);
+        openConfig();
     };
+
     return (
         <Navbar variant="dark" expand={false} bg="primary">
             <Container fluid>
@@ -57,7 +58,9 @@ export const Menu = ({ afterLogout, title, openConfig }: Props) => {
                     <Offcanvas.Body>
                         <Navbar.Text className="fs-5 align-items-center">
                             <FontAwesomeIcon className="icon-border-radios" icon={faUser} />{' '}
-                            <span className="font-bold font-monospace">{user?.login}</span>
+                            <span className="font-bold font-monospace">
+                                {userToken?.user?.username}
+                            </span>
                         </Navbar.Text>
                         <Nav className="me-auto  mt-3">
                             <div className="row mb-3">
@@ -66,7 +69,8 @@ export const Menu = ({ afterLogout, title, openConfig }: Props) => {
                                         href="/"
                                         className="fs-5"
                                         onClick={(e) => {
-                                            cancelLink(e, '/');
+                                            e.preventDefault();
+                                            navigation('/');
                                         }}
                                     >
                                         <FontAwesomeIcon
@@ -84,8 +88,7 @@ export const Menu = ({ afterLogout, title, openConfig }: Props) => {
                                         href="/"
                                         className="fs-5"
                                         onClick={(e) => {
-                                            cancelLink(e);
-                                            openConfig();
+                                            notificationClick(e);
                                         }}
                                     >
                                         <FontAwesomeIcon
@@ -100,11 +103,9 @@ export const Menu = ({ afterLogout, title, openConfig }: Props) => {
                             <div className="row mb-3">
                                 <div className="col-auto row-menu-link">
                                     <Nav.Link
-                                        href="/"
                                         className="fs-5"
                                         onClick={(e) => {
-                                            cancelLink(e);
-                                            logout();
+                                            logout(e);
                                         }}
                                     >
                                         <FontAwesomeIcon

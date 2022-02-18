@@ -2,63 +2,32 @@ import { createContext, FC, useContext, useReducer } from 'react';
 
 import { appReducer, initialState } from './AppReducer';
 import { IWordContext } from '../common/dto/context.dto';
-import { WordDto } from '../common/dto/word.dto';
-import { IdentityInfo } from '../common/dto/identity-info';
+import { environment } from '../environment';
+import { TokenUserIdentity } from '../common/dto/identity-info';
 
 export const StateContext = createContext<IWordContext>(initialState);
 
-export const StateProvider: FC = ({ children }) => {
+export const GlobalStateProvider: FC = ({ children }) => {
     const [state, dispatch] = useReducer(appReducer, initialState);
-
-    const addWord = (word: WordDto) => {
-        dispatch({
-            type: 'ADD_WORD',
-            payload: word,
-        });
-    };
-    const editWord = (word: WordDto) => {
-        dispatch({
-            type: 'EDIT_WORD',
-            payload: word,
-        });
-    };
-    const deleteWord = (word: WordDto) => {
-        dispatch({
-            type: 'DELETE_WORD',
-            payload: word,
-        });
-    };
-    const setToken = (token: string) => {
+    const setUserToken = (userToken: TokenUserIdentity | null) => {
         dispatch({
             type: 'SET_TOKEN',
-            payload: token,
+            payload: userToken,
         });
     };
-    const setUser = (user: IdentityInfo | null | undefined) => {
-        dispatch({
-            type: 'SET_USER',
-            payload: user,
-        });
-    };
-    const setWords = (words: WordDto[]) => {
-        dispatch({
-            type: 'SET_WORDS',
-            payload: words,
-        });
+    const getToken = (): string | null => {
+        if (state.userToken?.accessToken) {
+            return state.userToken.accessToken;
+        } else {
+            return localStorage.getItem(environment.keyTokenStorage);
+        }
     };
     return (
         <StateContext.Provider
             value={{
-                find: state.find,
-                search: state.search,
-                words: state.words,
-                user: state.user,
-                deleteWord,
-                addWord,
-                editWord,
-                setToken,
-                setUser,
-                setWords,
+                userToken: state.userToken,
+                setUserToken,
+                getToken,
                 httpClient: state.httpClient,
                 appService: state.appService,
             }}

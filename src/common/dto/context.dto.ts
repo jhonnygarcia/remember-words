@@ -1,19 +1,11 @@
 import { AxiosInstance } from 'axios';
 import AppService from '../../context/app.service';
-import { IdentityInfo } from './identity-info';
-import { WordDto } from './word.dto';
+import { TokenUserIdentity } from './identity-info';
 
 export interface IWordContext {
-    search: string;
-    words: WordDto[];
-    find: WordDto[];
+    userToken: TokenUserIdentity | null;
     httpClient: AxiosInstance;
     appService: AppService;
-    user?: IdentityInfo | null;
-    setUser: (user: IdentityInfo | null) => void;
-    setToken: (token: string) => void,
-    addWord: (word: WordDto) => void;
-    editWord: (word: WordDto) => void;
-    deleteWord: (word: WordDto) => void;
-    setWords: (words: WordDto[]) => void;
+    setUserToken: (userToken: TokenUserIdentity | null) => void;
+    getToken: () => string | null;
 }

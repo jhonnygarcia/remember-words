@@ -5,7 +5,7 @@ import { faTrash, faPencil } from '@fortawesome/free-solid-svg-icons';
 import { helper } from '../../common/helpers.function';
 import { ConfirmModal } from '../../components/ConfirmModal';
 import { ChangeEvent, useState } from 'react';
-import { Form, FormCheck } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 
 interface Props {
     word: WordDto;

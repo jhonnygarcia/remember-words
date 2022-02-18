@@ -1,8 +1,9 @@
 import './Login.css';
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStateValue } from '../../context/WordsState';
 import { useNavigate } from 'react-router-dom';
+import { helper } from '../../common/helpers.function';
 
 interface StateLogin {
     username: string;
@@ -12,12 +13,9 @@ interface StateLogin {
     loading: boolean;
     message?: string;
 }
-interface Props {
-    loggedinOk: () => void;
-}
 type HandleInputChange = ChangeEvent<HTMLInputElement>;
-export const LoginPage = ({ loggedinOk }: Props) => {
-    const { setToken, setUser, appService } = useStateValue();
+export const LoginPage = () => {
+    const { getToken, setUserToken, appService } = useStateValue();
     const navigate = useNavigate();
 
     const initialState = {
@@ -55,9 +53,7 @@ export const LoginPage = ({ loggedinOk }: Props) => {
 
         try {
             const response = await appService.login(state.username, state.password);
-            setToken(response.data.accessToken);
-            setUser(response.data.user);
-            loggedinOk();
+            setUserToken(response.data);
             navigate('/main');
         } catch (error) {
             setState({
@@ -67,6 +63,28 @@ export const LoginPage = ({ loggedinOk }: Props) => {
             });
         }
     };
+    const getLogged = async () => {
+        const tokenCached = getToken();
+        if (!tokenCached) return;
+
+        const res = await helper.axiosCall({
+            request: appService.userProfile(tokenCached),
+            observe: 'body',
+        });
+
+        if (res.success) {
+            setUserToken({
+                user: res.response,
+                accessToken: tokenCached,
+            });
+            navigate('/main');
+        }
+    };
+
+    useEffect(() => {
+        getLogged();
+    }, []);
+
     const getClassForm = (name: string) => {
         const form: any = { ...state };
         const dirty: boolean = form[`dirty${name}`];

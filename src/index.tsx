@@ -10,11 +10,11 @@ import { App } from './App';
 import reportWebVitals from './reportWebVitals';
 import { registerServiceWorker } from './serviceWorker';
 import { ToastContainer } from 'react-toastify';
-import { StateProvider } from './context/WordsState';
+import { GlobalStateProvider } from './context/WordsState';
 
 ReactDOM.render(
     <React.StrictMode>
-        <StateProvider>
+        <GlobalStateProvider>
             <BrowserRouter>
                 <App title="Learning words" />
                 <ToastContainer
@@ -29,7 +29,7 @@ ReactDOM.render(
                     pauseOnHover
                 />
             </BrowserRouter>
-        </StateProvider>
+        </GlobalStateProvider>
     </React.StrictMode>,
     document.getElementById('root'),
 );

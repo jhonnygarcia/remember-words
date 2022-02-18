@@ -14,25 +14,28 @@ interface MainState {
     search: string;
     showForm: boolean;
     wordId: string | null;
+    words: WordDto[];
 }
 export const MainPage = () => {
     const initialState = {
         search: '',
         showForm: false,
         wordId: null,
+        words: [],
     };
     const [state, setState] = useState<MainState>(initialState);
-    const { words, setWords, appService } = useStateValue();
+    const { appService } = useStateValue();
 
-    const getWords = async (empty = false) => {
+    const getWords = async (search?: string | null) => {
+        const searchValue = search == '' ? '' : state.search;
         const payload = {
-            search: empty ? '' : state.search,
+            search: searchValue,
             page: 1,
             perPage: 100,
         };
         const response = await appService.getWords(payload);
         const resPaged: PagedListDto<WordDto> = response.data;
-        setWords(resPaged.data);
+        setState({ ...state, search: searchValue, words: resPaged.data });
     };
     useEffect(() => {
         getWords();
@@ -40,15 +43,12 @@ export const MainPage = () => {
     const searchClick = async () => {
         await getWords();
     };
-    const changeInput = (e: ChangeEvent<HTMLInputElement>) => {
-        setState({
-            ...state,
-            search: e.target.value,
-        });
-        const prevValue = state.search;
-        const newValue = e.target.value;
-        if (prevValue.length > 0 && newValue == '') {
-            getWords(true);
+    const changeInput = async (e: ChangeEvent<HTMLInputElement>) => {
+        const clickInClearValue = e.target.value == '' && state.search.length > 0;
+        if (clickInClearValue) {
+            getWords('');
+        } else {
+            setState({ ...state, search: e.target.value });
         }
     };
     const keyPress = async (e: KeyboardEvent) => {
@@ -90,7 +90,7 @@ export const MainPage = () => {
                             <div className="col-sm-3 col-md-3 mt-2">
                                 <NewWord openNewWord={openNewWord} />
                             </div>
-                            {words.map((word) => (
+                            {state.words.map((word) => (
                                 <div key={word._id} className="col-sm-3 col-md-3 mt-2">
                                     <Word
                                         refreshWords={getWords}

@@ -275,7 +275,7 @@ export const ConfigModal = ({ show, close }: Props) => {
                         )}
                         <div className={state.hasNotify ? 'd-flex justify-content-end' : 'd-flex'}>
                             <Button variant="secondary" type="button" onClick={close}>
-                                Cancelar
+                                Cerrar
                             </Button>
                             <Button
                                 style={{ marginLeft: '0.625rem' }}
