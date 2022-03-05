@@ -1,17 +1,12 @@
-import { IWordContext } from "../common/dto/context.dto";
-import { TokenUserIdentity } from "../common/dto/identity-info";
+import { IWordContext } from "../dto/context.dto";
+import { TokenUserIdentity } from "../dto/identity-info";
 import { environment } from "../environment";
-import { createHttpClient } from '../http-comon';
-import AppService from "./app.service";
+import { createHttpClient } from '../common/http-comon';
 
 type WORDS_ACTIONS = 'SET_TOKEN';
 
-const axiosInstance = createHttpClient();
-
 export const initialState = {
     userToken: null,
-    httpClient: axiosInstance,
-    appService: new AppService(axiosInstance),
     setUserToken: (userToken: TokenUserIdentity | null) => { },
     getToken: () => null
 };
@@ -21,16 +16,14 @@ export const appReducer = (state: IWordContext, action: { type: WORDS_ACTIONS, p
         case "SET_TOKEN":
             const userToken: TokenUserIdentity = action.payload;
             if (userToken) {
-                localStorage.setItem(environment.keyTokenStorage, userToken.accessToken);
+                localStorage.setItem(environment.STORAGE_TOKEN, userToken.accessToken);
             } else {
-                localStorage.removeItem(environment.keyTokenStorage);
+                localStorage.removeItem(environment.STORAGE_TOKEN);
             }
-            const http = createHttpClient(userToken?.accessToken);
+            const http = createHttpClient();
             return {
                 ...state,
-                userToken: userToken,
-                httpClient: http,
-                appService: new AppService(http)
+                userToken: userToken
             };
         default:
             return state;

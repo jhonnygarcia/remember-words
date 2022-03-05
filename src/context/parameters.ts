@@ -11,7 +11,6 @@ export interface WherePagedDto {
     perPage?: number;
 }
 export interface SaveConfigDto {
-    remember_days: number;
-    active: boolean;
-    date: Date | string;
+    active_notification?: boolean;
+    active_sound?: boolean;
 }

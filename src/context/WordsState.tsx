@@ -1,9 +1,9 @@
 import { createContext, FC, useContext, useReducer } from 'react';
 
 import { appReducer, initialState } from './AppReducer';
-import { IWordContext } from '../common/dto/context.dto';
+import { IWordContext } from '../dto/context.dto';
 import { environment } from '../environment';
-import { TokenUserIdentity } from '../common/dto/identity-info';
+import { TokenUserIdentity } from '../dto/identity-info';
 
 export const StateContext = createContext<IWordContext>(initialState);
 
@@ -19,7 +19,7 @@ export const GlobalStateProvider: FC = ({ children }) => {
         if (state.userToken?.accessToken) {
             return state.userToken.accessToken;
         } else {
-            return localStorage.getItem(environment.keyTokenStorage);
+            return localStorage.getItem(environment.STORAGE_TOKEN);
         }
     };
     return (
@@ -27,9 +27,7 @@ export const GlobalStateProvider: FC = ({ children }) => {
             value={{
                 userToken: state.userToken,
                 setUserToken,
-                getToken,
-                httpClient: state.httpClient,
-                appService: state.appService,
+                getToken
             }}
         >
             {children}

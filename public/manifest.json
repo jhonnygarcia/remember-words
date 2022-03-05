@@ -1,6 +1,6 @@
 {
-    "short_name": "Remembers",
-    "name": "Learn Remembers",
+    "short_name": "Remember",
+    "name": "Learn Remember",
     "icons": [
         {
             "src": "img/icons/icon_x48.png",
@@ -40,7 +40,7 @@
     ],
     "start_url": "/",
     "orientation": "portrait",
-    "display": "standalone",
-    "theme_color": "#3498db",
+    "display": "fullscreen",
+    "theme_color": "#3459e6",
     "background_color": "#ffffff"
 }

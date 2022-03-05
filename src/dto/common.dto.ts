@@ -8,3 +8,8 @@ export interface MetaObject {
     offset?: number;
     limit?: number;
 }
+
+export interface FormControlValue<T> {
+    value: T;
+    dirty: boolean;
+}

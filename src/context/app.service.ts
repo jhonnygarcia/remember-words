@@ -1,29 +1,84 @@
 import { CreateEditWordDto, SaveConfigDto, WherePagedDto } from './parameters';
 import { AxiosInstance, AxiosResponse } from 'axios';
 import { helper } from '../common/helpers.function';
+import { createHttpClient } from '../common/http-comon';
+import { LoginDto, RegisterDto, UpdateUserDto, UsersWherePagedDto } from '../dto';
+import { userTokenStorage } from '../hooks';
 
 class AppService {
-    constructor(private httpClient: AxiosInstance) { }
-
-    async userProfile(token?: string | null): Promise<AxiosResponse> {
+    httpClient: AxiosInstance;
+    constructor() {
+        this.httpClient = createHttpClient();
+    }
+    async userProfile(): Promise<AxiosResponse> {
+        const token = userTokenStorage.getTokenStorage();
         if (token) {
-            return await this.httpClient.get('/auth/userinfo', {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
+            return await this.httpClient
+                .get('/auth/userinfo', {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+                .then((res) => {
+                    userTokenStorage.setStorage({ user: res.data });
+                    return res;
+                })
+                .catch((error) => {
+                    userTokenStorage.cleanStorage();
+                    return Promise.reject(error);
+                });
         } else {
-            return await this.httpClient.get('/auth/userinfo');
+            return await this.httpClient.get('/auth/userinfo').catch((error) => {
+                userTokenStorage.cleanStorage();
+                return Promise.reject(error);
+            });
         }
     }
     async logout(): Promise<AxiosResponse> {
-        const response = await this.httpClient.get('/auth/logout');
+        const response = await this.httpClient.get('/auth/logout').then((res) => {
+            userTokenStorage.cleanStorage();
+            return res;
+        });
         return response;
     }
-    async login(username: string, password: string): Promise<AxiosResponse> {
-        return await this.httpClient.post('/auth/login', { username, password });
+    async login(data: LoginDto): Promise<AxiosResponse> {
+        return await this.httpClient
+            .post('/auth/login', data)
+            .then((res) => {
+                const { user, accessToken } = res.data;
+                userTokenStorage.setStorage({ user, accessToken });
+                return res;
+            })
+            .catch((error) => {
+                userTokenStorage.cleanStorage();
+                return Promise.reject(error);
+            });
+    }
+    async register(data: RegisterDto) {
+        return await this.httpClient.post('/auth/create-free', data);
     }
     async getWords(where: WherePagedDto): Promise<AxiosResponse> {
         const query = helper.objToQueryString(where);
         const response = await this.httpClient.get(`/api/words?${query}`);
+        return response;
+    }
+    async getUsers(where: UsersWherePagedDto): Promise<AxiosResponse> {
+        const query = helper.objToQueryString(where);
+        const response = await this.httpClient.get(`/api/users?${query}`);
+        return response;
+    }
+    async getUser(id: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.get(`/api/users/${id}`);
+        return response;
+    }
+    async setActiveUser(id: string, active: boolean): Promise<AxiosResponse> {
+        const response = await this.httpClient.post('/auth/set-active', { id, active });
+        return response;
+    }
+    async forgot(email: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post('/auth/forgot', { email });
+        return response;
+    }
+    async updateUser(id: string, data: UpdateUserDto): Promise<AxiosResponse> {
+        const response = await this.httpClient.put(`/api/users/${id}`, data);
         return response;
     }
     async getWord(wordId: string): Promise<AxiosResponse> {
@@ -45,4 +100,7 @@ class AppService {
         return await this.httpClient.post('api/user-configs', payload);
     }
 }
-export default AppService;
+
+export const useAppService = () => {
+    return new AppService();
+};

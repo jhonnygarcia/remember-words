@@ -1,9 +1,12 @@
-interface AppConfig {
+interface AppSettings {
     serverUri: string;
-    keyTokenStorage: string;
+    STORAGE_TOKEN: string;
+    ROLE_ADMIN: string;
+    STORAGE_USER: string;
 }
-export const environment: AppConfig = {
-    keyTokenStorage: 'token',
-    //serverUri: window.location.origin
-    serverUri: 'http://localhost:5001'
+export const environment: AppSettings = {
+    STORAGE_TOKEN: 'token',
+    STORAGE_USER: 'user',
+    serverUri: process.env.REACT_APP_SERVER_URI || window.location.origin,
+    ROLE_ADMIN: 'ADMIN'
 };

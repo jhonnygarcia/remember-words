@@ -1,1 +1,0 @@
-export const KEY_CACHE_WORDS = "words-translate";

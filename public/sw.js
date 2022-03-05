@@ -1,6 +1,6 @@
-var CACHE_NAME = 'learn-remembers-cache-v1';
+const CACHE_STATIC_NAME = 'learn-remembers-cache-v1';
+const CACHE_INMUTABLE_NAME = 'learn-remembers-inmutable-v1';
 var urlsToCache = [
-    '/',
     'icon_x48.png',
     'icon_x72.png',
     'icon_x96.png',
@@ -10,7 +10,7 @@ var urlsToCache = [
     'icon_x512.png',
     'admin_x128.png',
     'favicon.ico',
-    'admin.ico',
+    'admin.ico'
 ];
 
 function padTo2Digits(num) {
@@ -18,19 +18,14 @@ function padTo2Digits(num) {
 }
 
 function formatDate(date) {
-    return [
-        padTo2Digits(date.getDate()),
-        padTo2Digits(date.getMonth() + 1),
-        date.getFullYear(),
-    ].join('/');
+    return [padTo2Digits(date.getDate()), padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
 }
-function show_notity_word_from_job(word_id) {
+function show_notity_word_from_job(word_id, callback) {
     const dbname = 'remembersdb';
     const tb_jobs = 'tb_jobs';
     const request = indexedDB.open(dbname, 1);
     let table_not_found = false;
-    request.onupgradeneeded = (event) => {
-        console.log('[0]onupgradeneeded');
+    request.onupgradeneeded = () => {
         try {
             const store = request.transaction.objectStore(tb_jobs);
             console.log('[0]existe objectStore: tb_jobs');
@@ -69,7 +64,7 @@ function show_notity_word_from_job(word_id) {
                 } else {
                     store_tb_jobs.put({
                         ...data_result,
-                        repeat_remember: new_repeat_remember,
+                        repeat_remember: new_repeat_remember
                     });
                 }
 
@@ -79,7 +74,7 @@ function show_notity_word_from_job(word_id) {
                     timestamp: formatDate(new Date(data_result.date)),
                     openUrl: '/',
                     vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600],
-                    body: data_result.data.translation,
+                    body: data_result.data.translation
                 });
 
                 console.log('Se ha notificado el word con ID', word_id);
@@ -181,6 +176,9 @@ function created_user(data, pushParams) {
         body: data.message,
         icon: '/img/admin_x128.png',
         badge: '/img/admin.ico',
+        data: {
+            url: `/users/${data.userId}`
+        }
     });
 }
 function notify_all(data, pushParams) {
@@ -188,8 +186,16 @@ function notify_all(data, pushParams) {
         ...pushParams,
         body: data.message,
         icon: '/img/admin_x128.png',
-        badge: '/img/admin.ico',
+        badge: '/img/admin.ico'
     });
+}
+
+function createRememberWord(word_id, time) {
+    setTimeout(() => {
+        show_notity_word_from_job(word_id, () => {
+            createRememberWord(word_id, time);
+        });
+    }, time);
 }
 
 function create_periodic_background_job(pushData) {
@@ -226,10 +232,6 @@ function create_periodic_background_job(pushData) {
         console.log('[0]open_db: onsuccess');
         const db = event.target.result;
 
-        console.log('[0]eliminar tarea programada');
-        self.registration.periodicSync.unregister(word_id);
-        console.log('[0]tarea programada eliminada', self.registration.periodicSync);
-
         const tran_tb_jobs = db.transaction([tb_jobs], 'readwrite');
         // report on the success of the transaction completing, when everything is done
         tran_tb_jobs.oncomplete = (event) => {
@@ -253,7 +255,7 @@ function create_periodic_background_job(pushData) {
                     each_minutes: dataMessage.each_minutes,
                     repeat_remember: dataMessage.repeat_remember,
                     time: timeNow,
-                    data: { text: dataMessage.text, translation: dataMessage.translation },
+                    data: { text: dataMessage.text, translation: dataMessage.translation }
                 });
                 resPut.onsuccess = () => {
                     console.log('[0] .periodicSync.register');
@@ -261,7 +263,7 @@ function create_periodic_background_job(pushData) {
                         .register(word_id, {
                             minInterval: dataMessage.each_minutes * 60 * 1000,
                             minPeriod: dataMessage.each_minutes * 60 * 1000,
-                            minDelay: dataMessage.each_minutes * 60 * 1000,
+                            minDelay: dataMessage.each_minutes * 60 * 1000
                         })
                         .then((res) => {
                             console.log('si se pudo registrar 1', res);
@@ -277,18 +279,18 @@ function create_periodic_background_job(pushData) {
                     each_minutes: dataMessage.each_minutes,
                     repeat_remember: dataMessage.repeat_remember,
                     time: timeNow,
-                    data: { text: dataMessage.text, translation: dataMessage.translation },
+                    data: { text: dataMessage.text, translation: dataMessage.translation }
                 });
                 resAdd.onsuccess = () => {
                     console.log('[1] .periodicSync.register', {
                         word_id,
-                        minutes: dataMessage.each_minutes,
+                        minutes: dataMessage.each_minutes
                     });
                     self.registration.periodicSync
                         .register(word_id, {
                             minInterval: dataMessage.each_minutes * 60 * 1000,
                             minPeriod: dataMessage.each_minutes * 60 * 1000,
-                            minDelay: dataMessage.each_minutes * 60 * 1000,
+                            minDelay: dataMessage.each_minutes * 60 * 1000
                         })
                         .then((res) => {
                             console.log('si se pudo registrar 1', res);
@@ -314,7 +316,7 @@ self.addEventListener('push', (e) => {
         badge: '/favicon.ico',
         timestamp: formatDate(new Date(sendDate)),
         openUrl: '/',
-        vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600],
+        vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600]
     };
     switch (action) {
         case 'created_word':
@@ -352,23 +354,44 @@ self.addEventListener('push', (e) => {
     }
 });
 
-self.addEventListener('periodicsync', (event) => {
-    console.log('addEventListener - periodicsync', event);
-    event.waitUntil(show_notity_word_from_job(event.tag));
+self.addEventListener('fetch', (event) => {
+    if (!urlsToCache.some((url) => event.request.url.includes(url))) {
+        event.respondWith(fetch(event.request));
+    } else {
+        event.respondWith(
+            caches.match(event.request).then((response) => {
+                if (response) {
+                    return response;
+                }
+                return fetch(event.request);
+            })
+        );
+    }
 });
 
-self.onperiodicsync = (event) => {
-    console.log('onperiodicsync', event);
-    event.waitUntil(show_notity_word_from_job(event.tag));
-};
+self.addEventListener('install', (e) => {
+    const cacheProm = caches.open(CACHE_STATIC_NAME).then((cache) => {
+        return cache.addAll(urlsToCache);
+    });
 
-self.addEventListener('fetch', (event) => {
-    event.respondWith(
-        caches.match(event.request).then((response) => {
-            if (response) {
-                return response;
+    e.waitUntil(Promise.all([cacheProm]));
+});
+
+self.addEventListener('notificationclose', (e) => {});
+
+self.addEventListener('notificationclick', (e) => {
+    const notification = e.notification;
+    if (notification.data?.url) {
+        const result = clients.matchAll().then((tabs) => {
+            const tabOpen = tabs.find((t) => t.visibilityState == 'visible');
+            if (tabOpen) {
+                tabOpen.navigate(notification.data.url);
+                tabOpen.focus();
+            } else {
+                clients.openWindow(notification.data.url);
             }
-            return fetch(event.request);
-        }),
-    );
+            return notification.close();
+        });
+        e.waitUntil(result);
+    }
 });

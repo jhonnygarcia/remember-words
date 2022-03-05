@@ -3,6 +3,9 @@ import 'bootswatch/dist/zephyr/bootstrap.min.css';
 import 'react-bootstrap/dist/react-bootstrap.min.js';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from 'react-query/devtools'
+
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -12,24 +15,29 @@ import { registerServiceWorker } from './serviceWorker';
 import { ToastContainer } from 'react-toastify';
 import { GlobalStateProvider } from './context/WordsState';
 
+const queryClient = new QueryClient();
+
 ReactDOM.render(
     <React.StrictMode>
-        <GlobalStateProvider>
-            <BrowserRouter>
-                <App title="Learning words" />
-                <ToastContainer
-                    position="top-right"
-                    autoClose={5000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
-            </BrowserRouter>
-        </GlobalStateProvider>
+        <QueryClientProvider client={queryClient}>
+            {/* <GlobalStateProvider> */}
+                <BrowserRouter>
+                    <App title="Learning words" />
+                    <ToastContainer
+                        position="top-right"
+                        autoClose={5000}
+                        hideProgressBar={false}
+                        newestOnTop={false}
+                        closeOnClick
+                        rtl={false}
+                        pauseOnFocusLoss
+                        draggable
+                        pauseOnHover
+                    />
+                </BrowserRouter>
+            {/* </GlobalStateProvider> */}
+            <ReactQueryDevtools initialIsOpen={false} />
+        </QueryClientProvider>
     </React.StrictMode>,
     document.getElementById('root'),
 );

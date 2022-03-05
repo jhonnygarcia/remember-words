@@ -1,24 +1,14 @@
-import { useState } from 'react';
 import { Button, Modal, Spinner } from 'react-bootstrap';
 
 interface Props {
     show: boolean;
     title: string;
+    isLoading: boolean;
     children: any;
-    okAction: () => void | Promise<void>;
-    cancelAction: () => void;
+    ok: () => void | Promise<void>;
+    cancel: () => void;
 }
-export const ConfirmModal = ({ show, title, children, okAction, cancelAction }: Props) => {
-    const initialState = {
-        loading: false,
-    };
-    const [state, setState] = useState(initialState);
-    const confirmOk = async () => {
-        setState({ ...state, loading: true });
-        await okAction();
-        setState({ ...state, loading: false });
-        cancelAction();
-    };
+export const ConfirmModal = ({ show, title, children, isLoading, ok, cancel }: Props) => {
     return (
         <>
             <Modal show={show}>
@@ -27,11 +17,11 @@ export const ConfirmModal = ({ show, title, children, okAction, cancelAction }: 
                 </Modal.Header>
                 <Modal.Body>{children}</Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={cancelAction} disabled={state.loading} variant="secondary">
+                    <Button onClick={cancel} disabled={isLoading} variant="secondary">
                         Cancelar
                     </Button>
-                    <Button onClick={confirmOk} disabled={state.loading} variant="primary">
-                        {state.loading && (
+                    <Button onClick={ok} disabled={isLoading} variant="primary">
+                        {isLoading && (
                             <>
                                 <Spinner
                                     as="span"

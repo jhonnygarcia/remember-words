@@ -1,51 +1,68 @@
-import { WordDto } from '../../common/dto';
-import { useStateValue } from '../../context/WordsState';
+import { ChangeEvent, useState } from 'react';
+
+import { Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { helper } from '../../common/helpers.function';
+import { useMutation, useQueryClient } from 'react-query';
+import { toast } from 'react-toastify';
+
+import { WordDto } from '../../dto';
 import { ConfirmModal } from '../../components/ConfirmModal';
-import { ChangeEvent, useState } from 'react';
-import { Form } from 'react-bootstrap';
+import { WordFormModal } from './WordFormModal';
+import { useAppService } from '../../context/app.service';
+import { helper } from '../../common/helpers.function';
 
 interface Props {
     word: WordDto;
-    openEdit: (wordId: string) => void;
-    refreshWords: () => void;
 }
 
 interface WordSate {
-    showConfirm: boolean;
     complete: string;
 }
-export default function Word({ word, openEdit, refreshWords }: Props) {
+export default function Word({ word }: Props) {
     const COMPLETE = 'complete';
     const PENDING = 'pending';
     const initialState = {
-        showConfirm: false,
         complete: word.complete ? COMPLETE : PENDING,
     };
+    const appService = useAppService();
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [state, setState] = useState<WordSate>(initialState);
-    const { appService } = useStateValue();
+    const queryClient = useQueryClient();
+    const { mutate: mutateRemove, isLoading: isLoadingRemove } = useMutation(
+        () => appService.removeWord(word._id),
+        {
+            onSuccess: () => {
+                toast.success('Texto eliminado !');
+                queryClient.invalidateQueries('words');
+            },
+            onError: (error: any) => {
+                helper.showMessageResponseError('warn', {
+                    response: error.response,
+                    statusCodes: [404],
+                });
+            },
+        },
+    );
+    const { mutate: mutateEdit } = useMutation(
+        (completed: boolean) => {
+            return appService.editWord(word._id, { complete: completed });
+        },
+        {
+            onError: (error: any) => {
+                helper.showMessageResponseError('warn', {
+                    response: error.response,
+                    statusCodes: [404],
+                });
+            },
+        },
+    );
 
-    const deleteWord = async () => {
-        const res = await helper.axiosCall({
-            request: appService.removeWord(word._id),
-            observe: 'body',
-        });
-        helper.showMsgRequest(res, { statusFailed: [404] });
-        refreshWords();
-    };
     const changeComplete = async (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value == COMPLETE ? PENDING : COMPLETE;
         setState({ ...state, complete: value });
-
-        const completed = value == COMPLETE ? true : false;
-        const res = await helper.axiosCall({
-            request: appService.editWord(word._id, { complete: completed }),
-            observe: 'body',
-        });
-        helper.showMsgRequest(res, { statusFailed: [404, 400], autoClose: 1000 });
-        refreshWords();
+        mutateEdit(value == COMPLETE);
     };
     return (
         <>
@@ -64,30 +81,38 @@ export default function Word({ word, openEdit, refreshWords }: Props) {
                 <div className="d-flex align-items-center">
                     <button
                         title="Editar"
-                        onClick={() => openEdit(word._id)}
+                        onClick={() => setShowEditModal(true)}
                         className="btn btn-primary btn-sm m-1"
                     >
                         <FontAwesomeIcon icon={faPencil} />
                     </button>
                     <button
                         title="Eliminar"
-                        onClick={() => setState({ ...state, showConfirm: true })}
+                        onClick={() => setShowConfirm(true)}
                         className="btn btn-danger btn-sm m-1"
                     >
                         <FontAwesomeIcon icon={faTrash} />
                     </button>
                 </div>
             </div>
-            <ConfirmModal
-                title="Eliminar texto"
-                show={state.showConfirm}
-                okAction={deleteWord}
-                cancelAction={() => {
-                    setState({ ...state, showConfirm: false });
-                }}
-            >
-                Esta seguro de eliminar el texto: <span className="fw-bold">{word.text}</span>
-            </ConfirmModal>
+            {showConfirm && (
+                <ConfirmModal
+                    title="Eliminar texto"
+                    show={showConfirm}
+                    isLoading={isLoadingRemove}
+                    ok={() => mutateRemove()}
+                    cancel={() => setShowConfirm(false)}
+                >
+                    Esta seguro de eliminar el texto: <span className="fw-bold">{word.text}</span>
+                </ConfirmModal>
+            )}
+            {showEditModal && (
+                <WordFormModal
+                    wordId={word._id}
+                    show={showEditModal}
+                    close={() => setShowEditModal(false)}
+                />
+            )}
         </>
     );
 }

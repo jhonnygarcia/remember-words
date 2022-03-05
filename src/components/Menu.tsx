@@ -2,9 +2,13 @@ import './Menu.css';
 import { Container, Nav, Navbar, Offcanvas } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPowerOff, faUser, faHouse, faBell } from '@fortawesome/free-solid-svg-icons';
+import { faPowerOff, faUser, faUsersGear, faHouse, faGear } from '@fortawesome/free-solid-svg-icons';
 import { MouseEvent, useState } from 'react';
-import { useStateValue } from '../context/WordsState';
+import { useAppService } from '../context/app.service';
+import { environment } from '../environment';
+import { userTokenStorage, KEY_USER_INFO } from '../hooks';
+import { useQueryClient } from 'react-query';
+import { appRoutes } from '../common/app.routes';
 
 interface Props {
     title: string;
@@ -13,25 +17,26 @@ interface Props {
 
 export const Menu = ({ title, openConfig }: Props) => {
     const initialState = {
-        show: false,
+        show: false
     };
+
+    const queryClient = useQueryClient();
+    const identityInfo = userTokenStorage.getUserStorage();
+    const appService = useAppService();
     const [state, setState] = useState(initialState);
-    const navigation = useNavigate();
-    const { appService, userToken, setUserToken } = useStateValue();
+    const navigate = useNavigate();
 
     const logout = async (e: MouseEvent) => {
         e.preventDefault();
-
-        setUserToken(null);
         setState({ ...state, show: false });
         await appService.logout();
-        navigation('/login');
+        navigate(appRoutes.login);
+        await queryClient.invalidateQueries(KEY_USER_INFO);
     };
-    const notificationClick = (e: MouseEvent) => {
+    const permisosClick = (e: MouseEvent) => {
         e.preventDefault();
         openConfig();
     };
-
     return (
         <Navbar variant="dark" expand={false} bg="primary">
             <Container fluid>
@@ -56,46 +61,73 @@ export const Menu = ({ title, openConfig }: Props) => {
                     </Offcanvas.Header>
 
                     <Offcanvas.Body>
-                        <Navbar.Text className="fs-5 align-items-center">
-                            <FontAwesomeIcon className="icon-border-radios" icon={faUser} />{' '}
-                            <span className="font-bold font-monospace">
-                                {userToken?.user?.username}
-                            </span>
-                        </Navbar.Text>
                         <Nav className="me-auto  mt-3">
                             <div className="row mb-3">
                                 <div className="col-auto row-menu-link">
                                     <Nav.Link
-                                        href="/"
+                                        href="/profile"
                                         className="fs-5"
                                         onClick={(e) => {
                                             e.preventDefault();
-                                            navigation('/');
+                                            navigate(`/users/${identityInfo?.sub}/edit`);
+                                            setState({ ...state, show: false });
                                         }}
                                     >
-                                        <FontAwesomeIcon
-                                            className="icon-border-radios"
-                                            icon={faHouse}
-                                        />{' '}
-                                        Home
+                                        <FontAwesomeIcon className="icon-border-radios" icon={faUser} size="1x" />{' '}
+                                        {identityInfo?.username}
+                                    </Nav.Link>
+                                </div>
+                            </div>
+                            <div className="row mb-3">
+                                <div className="col-auto row-menu-link">
+                                    <Nav.Link
+                                        href="/main"
+                                        className="fs-5"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            navigate('/main');
+                                            setState({ ...state, show: false });
+                                        }}
+                                    >
+                                        <FontAwesomeIcon className="icon-border-radios" icon={faHouse} size="1x" /> Home
                                     </Nav.Link>
                                 </div>
                             </div>
 
+                            {identityInfo?.roles.some((r) => r == environment.ROLE_ADMIN) && (
+                                <div className="row mb-3">
+                                    <div className="col-auto row-menu-link">
+                                        <Nav.Link
+                                            href="/users"
+                                            className="fs-5"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                navigate('/users');
+                                                setState({ ...state, show: false });
+                                            }}
+                                        >
+                                            <FontAwesomeIcon
+                                                className="icon-border-radios"
+                                                size="1x"
+                                                icon={faUsersGear}
+                                            />{' '}
+                                            Usuarios
+                                        </Nav.Link>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="row mb-3">
                                 <div className="col-auto row-menu-link">
                                     <Nav.Link
-                                        href="/"
+                                        href="/config"
                                         className="fs-5"
                                         onClick={(e) => {
-                                            notificationClick(e);
+                                            permisosClick(e);
                                         }}
                                     >
-                                        <FontAwesomeIcon
-                                            className="icon-border-radios"
-                                            icon={faBell}
-                                        />{' '}
-                                        Notificaciones
+                                        <FontAwesomeIcon className="icon-border-radios" size="1x" icon={faGear} />{' '}
+                                        Permisos
                                     </Nav.Link>
                                 </div>
                             </div>
@@ -108,10 +140,7 @@ export const Menu = ({ title, openConfig }: Props) => {
                                             logout(e);
                                         }}
                                     >
-                                        <FontAwesomeIcon
-                                            className="icon-border-radios"
-                                            icon={faPowerOff}
-                                        />{' '}
+                                        <FontAwesomeIcon className="icon-border-radios" size="1x" icon={faPowerOff} />{' '}
                                         Cerrar sesión
                                     </Nav.Link>
                                 </div>
