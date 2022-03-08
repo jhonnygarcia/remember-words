@@ -1,4 +1,5 @@
 import './Login.css';
+import '../../Captcha.css';
 import { ChangeEvent, FormEvent, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -8,6 +9,7 @@ import { useMutateLogin } from '../../hooks/auth.hook';
 import { useQueryClient } from 'react-query';
 import { KEY_USER_INFO } from '../../hooks';
 import { appRoutes } from '../../common/app.routes';
+import { environment } from '../../environment';
 
 interface StateLogin {
     username: string;
@@ -127,7 +129,7 @@ export const LoginPage = () => {
                                     <div className="mb-3">
                                         <div className="mb-2 w-100">
                                             <label className="text-muted">Contraseña</label>
-                                            <Link tabIndex={-1} className="float-end" to="/login">
+                                            <Link tabIndex={-1} className="float-end" to={appRoutes.forgot}>
                                                 Olvide mi contraseña
                                             </Link>
                                         </div>
@@ -148,7 +150,7 @@ export const LoginPage = () => {
                                     <div className="g-recaptcha mb-3">
                                         <ReCAPTCHA
                                             ref={captcha}
-                                            sitekey="6LfGDZoeAAAAAPOzo8oTL2OIbGgcpaxM1W-VTfHq"
+                                            sitekey={environment.CAPTCHA_PUBLIC}
                                             onChange={onChangeRecaptcha}
                                         />
                                     </div>

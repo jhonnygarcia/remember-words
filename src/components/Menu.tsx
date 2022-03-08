@@ -1,8 +1,8 @@
 import './Menu.css';
 import { Container, Nav, Navbar, Offcanvas } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPowerOff, faUser, faUsersGear, faHouse, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faPowerOff, faUser, faUsersGear, faFileWord, faGear } from '@fortawesome/free-solid-svg-icons';
 import { MouseEvent, useState } from 'react';
 import { useAppService } from '../context/app.service';
 import { environment } from '../environment';
@@ -57,7 +57,15 @@ export const Menu = ({ title, openConfig }: Props) => {
                     }}
                 >
                     <Offcanvas.Header closeButton>
-                        <Offcanvas.Title id="offcanvasNavbarLabel">{title}</Offcanvas.Title>
+                        <Offcanvas.Title id="offcanvasNavbarLabel">
+                            <Link
+                                onClick={(e) => setState({ ...state, show: false })}
+                                style={{ textDecoration: 'none' }}
+                                to="/home"
+                            >
+                                {title}
+                            </Link>
+                        </Offcanvas.Title>
                     </Offcanvas.Header>
 
                     <Offcanvas.Body>
@@ -89,7 +97,8 @@ export const Menu = ({ title, openConfig }: Props) => {
                                             setState({ ...state, show: false });
                                         }}
                                     >
-                                        <FontAwesomeIcon className="icon-border-radios" icon={faHouse} size="1x" /> Home
+                                        <FontAwesomeIcon className="icon-border-radios" icon={faFileWord} size="1x" />{' '}
+                                        Textos
                                     </Nav.Link>
                                 </div>
                             </div>

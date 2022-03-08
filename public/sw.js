@@ -1,3 +1,5 @@
+const dbname = 'remembersdb';
+const tb_jobs = 'tb_jobs';
 const CACHE_STATIC_NAME = 'learn-remembers-cache-v1';
 const CACHE_INMUTABLE_NAME = 'learn-remembers-inmutable-v1';
 var urlsToCache = [
@@ -20,51 +22,46 @@ function padTo2Digits(num) {
 function formatDate(date) {
     return [padTo2Digits(date.getDate()), padTo2Digits(date.getMonth() + 1), date.getFullYear()].join('/');
 }
-function show_notity_word_from_job(word_id, callback) {
-    const dbname = 'remembersdb';
-    const tb_jobs = 'tb_jobs';
+function show_notity_word_from_job(word_id) {
     const request = indexedDB.open(dbname, 1);
     let table_not_found = false;
     request.onupgradeneeded = () => {
         try {
             const store = request.transaction.objectStore(tb_jobs);
-            console.log('[0]existe objectStore: tb_jobs');
         } catch (e) {
             table_not_found = true;
             //crear tabla set_interval
-            console.log('[0]no existe objectStore: tb_jobs');
+            console.log('show_notity_word_from_job: tb_jobs has been removed');
         }
     };
     request.onsuccess = (event) => {
         if (table_not_found) {
             return;
         }
-
-        console.log('[0]open_db: onsuccess');
         const db = event.target.result;
-
         const tran_tb_jobs = db.transaction([tb_jobs], 'readwrite');
         // report on the success of the transaction completing, when everything is done
         tran_tb_jobs.oncomplete = (event) => {
-            console.log('[0]se completo la transaccion', event);
+            console.log('show_notity_word_from_job: transaction:completed');
+        };
+        tran_tb_jobs.onerror = (event) => {
+            console.log('show_notity_word_from_job: transaction:error', event);
         };
 
-        tran_tb_jobs.onerror = (event) => {
-            console.log('[0]hubo un error en la transaccion', event);
-        };
         const store_tb_jobs = tran_tb_jobs.objectStore(tb_jobs);
         let res_job_get = store_tb_jobs.get(word_id);
         res_job_get.onsuccess = (event_get) => {
-            console.log('[0] succes-in-get', event);
             const data_result = event_get.target.result;
             if (data_result) {
                 const new_repeat_remember = data_result.repeat_remember - 1;
                 if (new_repeat_remember <= 0) {
                     deleted_kill_all_word(true, false, data_result.id);
                 } else {
+                    const timeout_id = createRememberWord(data_result.id, data_result.each_minutes * 60 * 1000);
                     store_tb_jobs.put({
                         ...data_result,
-                        repeat_remember: new_repeat_remember
+                        repeat_remember: new_repeat_remember,
+                        timeout_id
                     });
                 }
 
@@ -74,12 +71,11 @@ function show_notity_word_from_job(word_id, callback) {
                     timestamp: formatDate(new Date(data_result.date)),
                     openUrl: '/',
                     vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600],
-                    body: data_result.data.translation
+                    body: data_result.data.translation,
+                    data: {
+                        url: `/words/${data_result.id}/details`
+                    }
                 });
-
-                console.log('Se ha notificado el word con ID', word_id);
-            } else {
-                console.log('sea ha borrado el job con Id', word_id);
             }
         };
         db.close();
@@ -87,83 +83,63 @@ function show_notity_word_from_job(word_id, callback) {
 }
 function deleted_kill_all_word(isDeleted, isKill, word_id) {
     const indexedDB = self.indexedDB || self.webkitIndexedDB || self.mozIndexedDB;
-    if (indexedDB) {
-        console.log('IndexedDB is supported.');
-    } else {
+    if (!indexedDB) {
         console.log('IndexedDB is not supprorted.');
         return;
     }
-    const dbname = 'remembersdb';
-    const tb_jobs = 'tb_jobs';
-
-    //creamos la BBDD
     const request = indexedDB.open(dbname, 1);
     request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        console.log('onupgradeneeded');
         try {
             const store = request.transaction.objectStore(tb_jobs);
-            console.log('existe objectStore: tb_jobs');
         } catch (e) {
             //crar tabla set_interval
             const storeJobs = db.createObjectStore(tb_jobs, { keyPath: 'id' });
             storeJobs.createIndex(`${tb_jobs}_id_unqiue`, 'id', { unique: true });
-            console.log('no existe objectStore: tb_jobs');
+            console.log('deleted_kill_all_word: tb_jobs has been removed');
         }
     };
 
     request.onsuccess = (event) => {
-        console.log('open_db: onsuccess');
         const db = event.target.result;
-
         const tran_tb_jobs = db.transaction([tb_jobs], 'readwrite');
 
-        console.log('created_transaction: OK');
-
-        // report on the success of the transaction completing, when everything is done
         tran_tb_jobs.oncomplete = (event) => {
-            console.log('se completo la transaccion', event);
+            console.log('deleted_kill_all_word: transaction:completed');
         };
 
         tran_tb_jobs.onerror = (event) => {
-            console.log('hubo un error en la transaccion', event);
+            console.log('deleted_kill_all_word: transaction:error', event);
         };
 
         const store_tb_jobs = tran_tb_jobs.objectStore(tb_jobs);
-        console.log('objectStore creado: tb_jobs');
-
         if (isKill) {
+            const cursorJobs = store_tb_jobs.openCursor();
+            cursorJobs.onsuccess = (eventCursorJob) => {
+                let cursor = eventCursorJob.target.result;
+                if (cursor) {
+                    let key = cursor.primaryKey;
+                    let value = cursor.value;
+                    clearTimeout(value.timeout_id);
+                    cursor.continue();
+                }
+            };
             const resClear = store_tb_jobs.clear();
             resClear.onsuccess = () => {
-                console.log('success clear jobs');
+                console.log('deleted_kill_all_word: kill:all:process');
             };
-            self.registration.getTags().then((tags) => {
-                tags.forEach((tag) => {
-                    self.registration.periodicSync.unregister(tag);
-                });
-            });
         } else if (isDeleted) {
-            console.log('buscar por id: ' + word_id);
             try {
                 let res_get = store_tb_jobs.get(word_id);
                 res_get.onsuccess = (event_get) => {
                     const data_result = event_get.target.result;
                     if (data_result) {
-                        console.log('se encontro en el storage: ', data_result);
-
-                        self.registration.periodicSync.unregister(data_result.id);
-
-                        console.log('job unregister');
+                        clearTimeout(data_result.timeout_id);
                         store_tb_jobs.delete(word_id);
-                        console.log('se elimino el job', word_id);
                     }
                 };
-
-                res_get.onerror = (eventError) => {
-                    console.log('ocurrio un error al ejecutar el metodo: get', eventError);
-                };
             } catch (e) {
-                console.log('ocurrio un error al ejecutar el metodo: get', e);
+                console.log('deleted_kill_all_word: error deleting a reminder', e);
             }
         }
         db.close();
@@ -177,7 +153,7 @@ function created_user(data, pushParams) {
         icon: '/img/admin_x128.png',
         badge: '/img/admin.ico',
         data: {
-            url: `/users/${data.userId}`
+            url: `/users/${data.userId}/show`
         }
     });
 }
@@ -191,18 +167,15 @@ function notify_all(data, pushParams) {
 }
 
 function createRememberWord(word_id, time) {
-    setTimeout(() => {
-        show_notity_word_from_job(word_id, () => {
-            createRememberWord(word_id, time);
-        });
+    const timeout_id = setTimeout(() => {
+        show_notity_word_from_job(word_id);
     }, time);
+    return timeout_id;
 }
 
 function create_periodic_background_job(pushData) {
     const indexedDB = self.indexedDB || self.webkitIndexedDB || self.mozIndexedDB;
-    if (indexedDB) {
-        console.log('IndexedDB is supported.');
-    } else {
+    if (!indexedDB) {
         console.log('IndexedDB is not supprorted.');
         return;
     }
@@ -210,99 +183,57 @@ function create_periodic_background_job(pushData) {
     const dataMessage = pushData.data;
     const timeNow = pushData.sendDate;
     const word_id = pushData.data.id;
-    console.log(pushData);
 
-    const dbname = 'remembersdb';
-    const tb_jobs = 'tb_jobs';
     const request = indexedDB.open(dbname, 1);
     request.onupgradeneeded = (event) => {
         const db = event.target.result;
-        console.log('[0]onupgradeneeded');
         try {
             const store = request.transaction.objectStore(tb_jobs);
-            console.log('[0]existe objectStore: tb_jobs');
         } catch (e) {
-            //crar tabla set_interval
             const storeJobs = db.createObjectStore(tb_jobs, { keyPath: 'id' });
             storeJobs.createIndex(`${tb_jobs}_id_unqiue`, 'id', { unique: true });
-            console.log('no existe objectStore: tb_jobs');
+            console.log('create_periodic_background_job: tb_jobs:created');
         }
     };
     request.onsuccess = (event) => {
-        console.log('[0]open_db: onsuccess');
         const db = event.target.result;
 
         const tran_tb_jobs = db.transaction([tb_jobs], 'readwrite');
-        // report on the success of the transaction completing, when everything is done
         tran_tb_jobs.oncomplete = (event) => {
-            console.log('[0]se completo la transaccion', event);
+            console.log('create_periodic_background_job: transaction:completed');
         };
 
         tran_tb_jobs.onerror = (event) => {
-            console.log('[0]hubo un error en la transaccion', event);
+            console.log('create_periodic_background_job: transaction:error', event);
         };
         const store_tb_jobs = tran_tb_jobs.objectStore(tb_jobs);
         let res_job_get = store_tb_jobs.get(word_id);
         res_job_get.onsuccess = (event_get) => {
-            console.log('[0] succes-in-get', event);
             const data_result = event_get.target.result;
 
             if (data_result) {
-                console.log(`[0] existe el registro con id: ${word_id}`, event);
-                self.registration.periodicSync.unregister(word_id);
-                const resPut = store_tb_jobs.put({
+                clearTimeout(data_result.timeout_id);
+                const timeout_id = createRememberWord(word_id, dataMessage.each_minutes * 60 * 1000);
+                store_tb_jobs.put({
                     id: word_id,
                     each_minutes: dataMessage.each_minutes,
                     repeat_remember: dataMessage.repeat_remember,
                     time: timeNow,
+                    timeout_id,
                     data: { text: dataMessage.text, translation: dataMessage.translation }
                 });
-                resPut.onsuccess = () => {
-                    console.log('[0] .periodicSync.register');
-                    self.registration.periodicSync
-                        .register(word_id, {
-                            minInterval: dataMessage.each_minutes * 60 * 1000,
-                            minPeriod: dataMessage.each_minutes * 60 * 1000,
-                            minDelay: dataMessage.each_minutes * 60 * 1000
-                        })
-                        .then((res) => {
-                            console.log('si se pudo registrar 1', res);
-                        })
-                        .catch((error) => {
-                            console.log('no se pudo registrar 1', error);
-                        });
-                    console.log('[0] .periodicSync.register succes');
-                };
             } else {
-                const resAdd = store_tb_jobs.add({
+                const timeout_id = createRememberWord(word_id, dataMessage.each_minutes * 60 * 1000);
+                store_tb_jobs.add({
                     id: word_id,
                     each_minutes: dataMessage.each_minutes,
                     repeat_remember: dataMessage.repeat_remember,
                     time: timeNow,
+                    timeout_id,
                     data: { text: dataMessage.text, translation: dataMessage.translation }
                 });
-                resAdd.onsuccess = () => {
-                    console.log('[1] .periodicSync.register', {
-                        word_id,
-                        minutes: dataMessage.each_minutes
-                    });
-                    self.registration.periodicSync
-                        .register(word_id, {
-                            minInterval: dataMessage.each_minutes * 60 * 1000,
-                            minPeriod: dataMessage.each_minutes * 60 * 1000,
-                            minDelay: dataMessage.each_minutes * 60 * 1000
-                        })
-                        .then((res) => {
-                            console.log('si se pudo registrar 1', res);
-                        })
-                        .catch((error) => {
-                            console.log('no se pudo registrar 1', error);
-                        });
-                    console.log('[2] .periodicSync.register succes');
-                };
             }
         };
-
         db.close();
     };
 }
@@ -377,8 +308,6 @@ self.addEventListener('install', (e) => {
     e.waitUntil(Promise.all([cacheProm]));
 });
 
-self.addEventListener('notificationclose', (e) => {});
-
 self.addEventListener('notificationclick', (e) => {
     const notification = e.notification;
     if (notification.data?.url) {
@@ -394,4 +323,5 @@ self.addEventListener('notificationclick', (e) => {
         });
         e.waitUntil(result);
     }
+    notification.close();
 });

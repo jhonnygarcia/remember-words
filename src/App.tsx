@@ -16,6 +16,11 @@ import { environment } from './environment';
 import { IdentityInfo } from './dto/identity-info';
 import { appRoutes } from './common/app.routes';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ForgotPage } from './pages/ForgotPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { ForgotSuccessPage } from './pages/ForgotSuccessPage';
+import { WordShowPage } from './pages/WordShowPage';
+import { InvalidKeyPage } from './pages/InvalidKeyPage';
 interface Props {
     title?: string;
 }
@@ -76,6 +81,12 @@ export const App = ({ title = 'default title' }: Props) => {
                     path={appRoutes.register}
                     element={identityInfo ? <Navigate to={appRoutes.home} /> : <RegisterPage />}
                 ></Route>
+                <Route path={appRoutes.forgot} element={<ForgotPage />}></Route>
+                <Route path={appRoutes.changePwd} element={<ChangePasswordPage />}></Route>
+                <Route
+                    path={appRoutes.words_details}
+                    element={identityInfo ? <WordShowPage /> : <Navigate to={appRoutes.login} />}
+                ></Route>
                 <Route
                     path={appRoutes.users}
                     element={
@@ -102,6 +113,8 @@ export const App = ({ title = 'default title' }: Props) => {
                 ></Route>
                 <Route path={appRoutes.no_privileges} element={<NoPrivilegesPage />}></Route>
                 <Route path={appRoutes.not_found} element={<NotFoundPage />}></Route>
+                <Route path={appRoutes.forgotSuccess} element={<ForgotSuccessPage />}></Route>
+                <Route path={appRoutes.invalidKey} element={<InvalidKeyPage />}></Route>
             </Routes>
             <ConfigModal show={state.show} close={closeModal} />
         </div>

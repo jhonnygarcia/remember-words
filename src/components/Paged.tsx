@@ -70,7 +70,7 @@ export const Paged = (props: PagedModel) => {
         gotoPage(currentPage + 1);
     };
     return (
-        <div className="d-flex flex-row justify-content-between">
+        <div className="d-flex flex-row flex-wrap justify-content-between">
             <span>
                 Mostrando desde {(currentPage - 1) * props.pageSize + 1} hasta{' '}
                 {currentPage * props.pageSize > props.totalRecords ? props.totalRecords : currentPage * props.pageSize}{' '}

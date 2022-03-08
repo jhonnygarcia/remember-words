@@ -6,6 +6,7 @@ import { environment } from '../environment';
 
 export const KEY_USERS = 'users';
 export const KEY_USER_INFO = 'userinfo';
+export const KEY_ACTIVATE_KEY = 'activate-key';
 export const useQueryUsers = (queryFn: () => UsersWherePagedDto, options?: any) => {
     const appService = useAppService();
     const payload = queryFn();
@@ -42,6 +43,19 @@ export const useQueryUserInfo = (options?: any) => {
     );
 };
 
+export const useGetActivateKey = (queryFn: () => string, options?: any) => {
+    const opt = Object.assign({}, options || {});
+    const appService = useAppService();
+    const activateKey = queryFn();
+    return useQuery<{ name: string }>(
+        [KEY_ACTIVATE_KEY],
+        () => {
+            return appService.getActivateKey(activateKey).then((res) => res.data as { name: string });
+        },
+        opt
+    );
+};
+
 export const useMutateActivateUser = (options?: any) => {
     const appService = useAppService();
     return useMutation((data: { id: string; active: boolean }) => {
@@ -60,8 +74,16 @@ export const useMutateUpdateUser = (options?: any) => {
 export const useMutateForgot = (options?: any) => {
     const appService = useAppService();
     const opt = Object.assign({}, options || {});
-    return useMutation((email: string) => {
-        return appService.forgot(email);
+    return useMutation((data: { email: string; captcha: string }) => {
+        return appService.forgot(data.email, data.captcha);
+    }, opt);
+};
+
+export const useMutateChangePwd = (options?: any) => {
+    const appService = useAppService();
+    const opt = Object.assign({}, options || {});
+    return useMutation((data: { password: string; activateKey: string }) => {
+        return appService.changePassword(data.password, data.activateKey);
     }, opt);
 };
 

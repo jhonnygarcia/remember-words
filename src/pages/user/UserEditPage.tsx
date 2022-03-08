@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { appRoutes } from '../../common/app.routes';
 import { FormControlValue, UserDto } from '../../dto';
@@ -171,7 +171,15 @@ export const UserEditPage = () => {
                                         </div>
                                     )}
                                     <div className="d-flex align-items-center">
-                                        <Link type="button" to="/users" className="btn btn-secondary">
+                                        <Link
+                                            type="button"
+                                            to=""
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                navigate(-1);
+                                            }}
+                                            className="btn btn-secondary"
+                                        >
                                             Volver
                                         </Link>
                                         <button type="submit" disabled={isLoading} className="btn btn-primary ms-auto">

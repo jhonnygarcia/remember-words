@@ -3,7 +3,7 @@ import { userTokenStorage } from '../hooks';
 export const Home = () => {
     const storageUser = userTokenStorage.getUserStorage();
     return (
-        <div className="container">
+        <div className="container p-4">
             <h3 className="text-center">
                 Bienvenido <b>{storageUser?.name}</b>, a tu applicación amiga para recordar palabras / textos
             </h3>

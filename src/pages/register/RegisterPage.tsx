@@ -1,3 +1,4 @@
+import '../../Captcha.css';
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Link } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { helper } from '../../common/helpers.function';
 import { InputPassword } from '../../components/Password';
 import { useMutateRegister } from '../../hooks/auth.hook';
 import { appRoutes } from '../../common/app.routes';
+import { environment } from '../../environment';
 
 interface RegisterState {
     username: FormControlValue<string>;
@@ -166,7 +168,7 @@ export const RegisterPage = () => {
                                     <div className="g-recaptcha mb-3">
                                         <ReCAPTCHA
                                             ref={captcha}
-                                            sitekey="6LfGDZoeAAAAAPOzo8oTL2OIbGgcpaxM1W-VTfHq"
+                                            sitekey={environment.CAPTCHA_PUBLIC}
                                             onChange={onChangeRecaptcha}
                                         />
                                     </div>

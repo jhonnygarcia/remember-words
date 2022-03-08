@@ -73,8 +73,16 @@ class AppService {
         const response = await this.httpClient.post('/auth/set-active', { id, active });
         return response;
     }
-    async forgot(email: string): Promise<AxiosResponse> {
-        const response = await this.httpClient.post('/auth/forgot', { email });
+    async forgot(email: string, captcha: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post('/auth/forgot', { email, captcha });
+        return response;
+    }
+    async getActivateKey(activateKey: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.get(`/auth/activate-key/${activateKey}`);
+        return response;
+    }
+    async changePassword(password: string, activate_key: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post('/auth/change-pwd', { password, activate_key });
         return response;
     }
     async updateUser(id: string, data: UpdateUserDto): Promise<AxiosResponse> {

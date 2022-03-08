@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 
 import { FormControlValue, WordDto } from '../../dto';
 import { helper } from '../../common/helpers.function';
-import { useMutateWord, useQueryWord } from '../../hooks/words.hook';
+import { KEY_WORDS, useMutateWord, useQueryWord } from '../../hooks/words.hook';
+import { useQueryClient } from 'react-query';
 
 type HandleInputChange = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 interface Props {
@@ -24,8 +25,9 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
         text: { value: '', dirty: false },
         translation: { value: '', dirty: false },
         each_minutes: { value: '', dirty: false },
-        repeat_remember: { value: '', dirty: false },
+        repeat_remember: { value: '', dirty: false }
     };
+    const queryClient = useQueryClient();
     const [state, setState] = useState<StateFormWord>(initialState);
     const { isLoading: getLoading, refetch } = useQueryWord(wordId, {
         enabled: false,
@@ -36,32 +38,43 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
                 translation: {
                     ...state.translation,
                     value: wordFound.translation || '',
-                    dirty: true,
+                    dirty: true
                 },
                 each_minutes: {
                     ...state.each_minutes,
                     value: wordFound.each_minutes || '',
-                    dirty: true,
+                    dirty: true
                 },
                 repeat_remember: {
                     ...state.repeat_remember,
                     value: wordFound.repeat_remember || '',
-                    dirty: true,
-                },
+                    dirty: true
+                }
             });
         },
         onError: () => {
             toast.error('El recurso ha sido eliminado');
             close();
-        },
+        }
     });
 
-    const { mutate, isLoading: saveLoading } = useMutateWord(wordId);
+    const { mutate, isLoading: saveLoading } = useMutateWord(wordId, {
+        onSuccess: () => {
+            toast.success('Operación realizada exitosamente');
+            queryClient.invalidateQueries(KEY_WORDS);
+        },
+        onError: (res: any) => {
+            helper.showMessageResponseError('warn', {
+                response: res.response,
+                statusCodes: [404, 400]
+            });
+        }
+    });
 
     const handleInputChange = (e: HandleInputChange) => {
         setState({
             ...state,
-            [e.target.name]: { value: e.target.value, dirty: true },
+            [e.target.name]: { value: e.target.value, dirty: true }
         });
     };
     const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -71,22 +84,21 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
             text: { ...state.text, dirty: true },
             translation: { ...state.translation, dirty: true },
             each_minutes: { ...state.each_minutes, dirty: true },
-            repeat_remember: { ...state.repeat_remember, dirty: true },
+            repeat_remember: { ...state.repeat_remember, dirty: true }
         });
         const isValid = helper.isValid([state.text, state.translation]);
         if (!isValid) return;
 
         const payload = {
             each_minutes: state.each_minutes.value == '' ? undefined : state.each_minutes.value,
-            repeat_remember:
-                state.repeat_remember.value == '' ? undefined : state.repeat_remember.value,
+            repeat_remember: state.repeat_remember.value == '' ? undefined : state.repeat_remember.value,
             text: state.text.value,
-            translation: state.translation.value,
+            translation: state.translation.value
         };
         mutate(payload, {
             onSuccess: () => {
                 if (!wordId) setState(initialState);
-            },
+            }
         });
     };
 
@@ -171,11 +183,7 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
                             <Button variant="secondary" type="button" onClick={close}>
                                 Cerrar
                             </Button>
-                            <Button
-                                style={{ marginLeft: '0.625rem' }}
-                                variant="primary"
-                                type="submit"
-                            >
+                            <Button style={{ marginLeft: '0.625rem' }} variant="primary" type="submit">
                                 {saveLoading && (
                                     <>
                                         <Spinner
