@@ -251,7 +251,9 @@ self.addEventListener('push', (e) => {
     };
     switch (action) {
         case 'created_word':
-            create_periodic_background_job(pushData);
+            if ((pushData.data.each_minutes || 0) > 0 && (pushData.data.repeat_remember || 0) > 0) {
+                create_periodic_background_job(pushData);
+            }
             break;
         case 'updated_word':
             let calcAction = 'updated_word';

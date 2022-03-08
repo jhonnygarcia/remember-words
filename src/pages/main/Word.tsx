@@ -12,6 +12,7 @@ import { WordFormModal } from './WordFormModal';
 import { useAppService } from '../../context/app.service';
 import { helper } from '../../common/helpers.function';
 import { Link } from 'react-router-dom';
+import { KEY_WORDS } from '../../hooks';
 
 interface Props {
     word: WordDto;
@@ -34,7 +35,8 @@ export default function Word({ word }: Props) {
     const { mutate: mutateRemove, isLoading: isLoadingRemove } = useMutation(() => appService.removeWord(word._id), {
         onSuccess: () => {
             toast.success('Texto eliminado !');
-            queryClient.invalidateQueries('words');
+            queryClient.fetchQuery(KEY_WORDS);
+            setShowConfirm(false);
         },
         onError: (error: any) => {
             helper.showMessageResponseError('warn', {
@@ -48,6 +50,9 @@ export default function Word({ word }: Props) {
             return appService.editWord(word._id, { complete: completed });
         },
         {
+            onSuccess: () => {
+                queryClient.fetchQuery(KEY_WORDS);
+            },
             onError: (error: any) => {
                 helper.showMessageResponseError('warn', {
                     response: error.response,
@@ -75,21 +80,31 @@ export default function Word({ word }: Props) {
                     />
                 </div>
                 <p className="text-break">{word.translation}</p>
-                <div className="d-flex align-items-center">
-                    <button
-                        title="Editar"
-                        onClick={() => setShowEditModal(true)}
-                        className="btn btn-primary btn-sm m-1"
-                    >
-                        <FontAwesomeIcon icon={faPencil} />
-                    </button>
-                    <button title="Eliminar" onClick={() => setShowConfirm(true)} className="btn btn-danger btn-sm m-1">
-                        <FontAwesomeIcon icon={faTrash} />
-                    </button>
+                <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                        <button
+                            title="Editar"
+                            onClick={() => setShowEditModal(true)}
+                            className="btn btn-primary btn-sm m-1"
+                        >
+                            <FontAwesomeIcon icon={faPencil} />
+                        </button>
+                        <button
+                            title="Eliminar"
+                            onClick={() => setShowConfirm(true)}
+                            className="btn btn-danger btn-sm m-1"
+                        >
+                            <FontAwesomeIcon icon={faTrash} />
+                        </button>
 
-                    <Link title="Detalle" to={`/words/${word._id}/details`} className="btn btn-info btn-sm m-1">
-                        <FontAwesomeIcon icon={faInfoCircle} />
-                    </Link>
+                        <Link title="Detalle" to={`/words/${word._id}/details`} className="btn btn-info btn-sm m-1">
+                            <FontAwesomeIcon icon={faInfoCircle} />
+                        </Link>
+                    </div>
+                    <div>
+                        {word.each_minutes && <span>M:{word.each_minutes}</span>}{' '}
+                        {word.repeat_remember && <span>R:{word.repeat_remember}</span>}
+                    </div>
                 </div>
             </div>
             {showConfirm && (

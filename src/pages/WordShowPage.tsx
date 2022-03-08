@@ -1,11 +1,12 @@
 import { ChangeEvent, useEffect, useState } from 'react';
 import { Form } from 'react-bootstrap';
+import { useQueryClient } from 'react-query';
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { appRoutes } from '../common/app.routes';
 import { helper } from '../common/helpers.function';
 import { WordDto } from '../dto';
-import { useMutateCompleteWord, useQueryWord } from '../hooks';
+import { KEY_WORDS, useMutateCompleteWord, useQueryWord } from '../hooks';
 
 export const WordShowPage = () => {
     const { id } = useParams();
@@ -15,6 +16,7 @@ export const WordShowPage = () => {
     const initialState = {
         complete: PENDING
     };
+    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const [state, setState] = useState(initialState);
     const { isLoading: isLoadingComplete, mutate } = useMutateCompleteWord(id, {
@@ -25,6 +27,7 @@ export const WordShowPage = () => {
                 toast.success('El texto ha vuelto a marcarse para seguir recordandose');
             }
             refetch();
+            queryClient.fetchQuery(KEY_WORDS);
         }
     });
     const { isLoading, data, refetch } = useQueryWord(id, {
