@@ -31,7 +31,7 @@ export const WordShowPage = () => {
         onSuccess: (word: WordDto) => {
             setState({ ...state, complete: word.complete ? COMPLETE : PENDING });
             setTimeout(() => {
-                playSpeechText();
+                playSpeechText(word.text);
             }, 1000);
         },
         onError: (error: any) => {
@@ -64,8 +64,8 @@ export const WordShowPage = () => {
     useEffect(() => {
         refetch();
     }, []);
-    const playSpeechText = async () => {
-        const result = await speech(data?.text || '');
+    const playSpeechText = async (text?: string) => {
+        const result = await speech(text || data?.text || '');
         if (result) {
             toast.info(result);
         }
