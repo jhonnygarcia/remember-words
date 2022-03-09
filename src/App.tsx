@@ -21,6 +21,9 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { ForgotSuccessPage } from './pages/ForgotSuccessPage';
 import { WordShowPage } from './pages/WordShowPage';
 import { InvalidKeyPage } from './pages/InvalidKeyPage';
+import { SendNotificaton } from './pages/notification/SendNotificatonPage';
+import { NotificationsPage } from './pages/notification/NotificationsPage';
+import { NotificationShowPage } from './pages/notification/NotificationShowPage';
 interface Props {
     title?: string;
 }
@@ -37,6 +40,7 @@ export const App = ({ title = 'default title' }: Props) => {
     const [identityInfo, setIdentity] = useState<IdentityInfo | null>(storageUser);
     const {} = useQueryUserInfo({
         staleTime: Infinity,
+        retryDelay: 3000,
         onSuccess: (data: IdentityInfo) => {
             setIdentity(data);
         },
@@ -86,6 +90,22 @@ export const App = ({ title = 'default title' }: Props) => {
                 <Route
                     path={appRoutes.words_details}
                     element={identityInfo ? <WordShowPage /> : <Navigate to={appRoutes.login} />}
+                ></Route>
+                <Route
+                    path={appRoutes.notify_user}
+                    element={identityInfo ? <SendNotificaton /> : <Navigate to={appRoutes.login} />}
+                ></Route>
+                <Route
+                    path={appRoutes.notify_all}
+                    element={identityInfo ? <SendNotificaton /> : <Navigate to={appRoutes.login} />}
+                ></Route>
+                <Route
+                    path={appRoutes.notifications}
+                    element={identityInfo ? <NotificationsPage /> : <Navigate to={appRoutes.login} />}
+                ></Route>
+                <Route
+                    path={appRoutes.notifications_show}
+                    element={identityInfo ? <NotificationShowPage /> : <Navigate to={appRoutes.login} />}
                 ></Route>
                 <Route
                     path={appRoutes.users}

@@ -133,12 +133,13 @@ export const UsersPage = () => {
                                 <td>{getRoles(user.roles)}</td>
                                 <td className="text-center">
                                     {user.hasNotify && (
-                                        <FontAwesomeIcon
-                                            title="Notificaciones habilitadas"
-                                            icon={faBell}
-                                            size="1x"
-                                            className="me-2 text-primary"
-                                        />
+                                        <Link
+                                            to={`/users/${user._id}/notify`}
+                                            title="Enviar notificación"
+                                            className="me-2"
+                                        >
+                                            <FontAwesomeIcon icon={faBell} size="1x" className="text-primary" />
+                                        </Link>
                                     )}
                                     <Link to={`/users/${user._id}/show`} title="Detalle" className="me-2">
                                         <FontAwesomeIcon icon={faInfoCircle} size="1x" />

@@ -157,12 +157,15 @@ function created_user(data, pushParams) {
         }
     });
 }
-function notify_all(data, pushParams) {
+function notify(data, pushParams) {
     self.registration.showNotification(data.title, {
         ...pushParams,
         body: data.message,
         icon: '/img/admin_x128.png',
-        badge: '/img/admin.ico'
+        badge: '/img/admin.ico',
+        data: {
+            url: `/notifications/${data.id}/show`
+        }
     });
 }
 
@@ -275,8 +278,8 @@ self.addEventListener('push', (e) => {
         case 'created_user':
             created_user(pushData.data, params);
             break;
-        case 'notify_all':
-            notify_all(pushData.data, params);
+        case 'notify':
+            notify(pushData.data, params);
             break;
         case 'kill_all_notify':
             deleted_kill_all_word(false, true, pushData.data.id);

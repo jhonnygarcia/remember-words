@@ -60,6 +60,19 @@ class AppService {
         const response = await this.httpClient.get(`/api/words?${query}`);
         return response;
     }
+    async getNotifications(where: WherePagedDto): Promise<AxiosResponse> {
+        const query = helper.objToQueryString(where);
+        const response = await this.httpClient.get(`/api/notifications?${query}`);
+        return response;
+    }
+    async getNotification(id: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.get(`/api/notifications/${id}`);
+        return response;
+    }
+    async brandShowNotification(id: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post(`/api/notifications/${id}/brand-show`, {});
+        return response;
+    }
     async getUsers(where: UsersWherePagedDto): Promise<AxiosResponse> {
         const query = helper.objToQueryString(where);
         const response = await this.httpClient.get(`/api/users?${query}`);
@@ -71,6 +84,15 @@ class AppService {
     }
     async setActiveUser(id: string, active: boolean): Promise<AxiosResponse> {
         const response = await this.httpClient.post('/auth/set-active', { id, active });
+        return response;
+    }
+    async pushNotify(userId: string, title: string, message: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post(`/api/users/${userId}/send-notify`, { title, message });
+        return response;
+    }
+
+    async pushAllNotify(title: string, message: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.post('/api/send-notify', { title, message });
         return response;
     }
     async forgot(email: string, captcha: string): Promise<AxiosResponse> {

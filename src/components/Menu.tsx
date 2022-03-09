@@ -2,7 +2,7 @@ import './Menu.css';
 import { Container, Nav, Navbar, Offcanvas } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPowerOff, faUser, faUsersGear, faFileWord, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faPowerOff, faUser, faUsersGear, faFileWord, faGear, faBell } from '@fortawesome/free-solid-svg-icons';
 import { MouseEvent, useState } from 'react';
 import { useAppService } from '../context/app.service';
 import { environment } from '../environment';
@@ -125,7 +125,22 @@ export const Menu = ({ title, openConfig }: Props) => {
                                     </div>
                                 </div>
                             )}
-
+                            <div className="row mb-3">
+                                <div className="col-auto row-menu-link">
+                                    <Nav.Link
+                                        href="/notifications"
+                                        className="fs-5"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            navigate('/notifications');
+                                            setState({ ...state, show: false });
+                                        }}
+                                    >
+                                        <FontAwesomeIcon className="icon-border-radios" size="1x" icon={faBell} />{' '}
+                                        Notificaciones
+                                    </Nav.Link>
+                                </div>
+                            </div>
                             <div className="row mb-3">
                                 <div className="col-auto row-menu-link">
                                     <Nav.Link
@@ -133,6 +148,7 @@ export const Menu = ({ title, openConfig }: Props) => {
                                         className="fs-5"
                                         onClick={(e) => {
                                             permisosClick(e);
+                                            setState({ ...state, show: false });
                                         }}
                                     >
                                         <FontAwesomeIcon className="icon-border-radios" size="1x" icon={faGear} />{' '}
