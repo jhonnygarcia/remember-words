@@ -7,7 +7,9 @@ import { appRoutes } from '../common/app.routes';
 import { helper } from '../common/helpers.function';
 import { WordDto } from '../dto';
 import { KEY_WORDS, useMutateCompleteWord, useQueryWord } from '../hooks';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
+import { speech } from '../common/speech';
 export const WordShowPage = () => {
     const { id } = useParams();
     if (!id) return <Navigate to={appRoutes.not_found} />;
@@ -16,20 +18,11 @@ export const WordShowPage = () => {
     const initialState = {
         complete: PENDING
     };
+
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const [state, setState] = useState(initialState);
-    const { isLoading: isLoadingComplete, mutate } = useMutateCompleteWord(id, {
-        onSuccess: () => {
-            if (state.complete == COMPLETE) {
-                toast.success('El texto ha sido marcado como completado');
-            } else {
-                toast.success('El texto ha vuelto a marcarse para seguir recordandose');
-            }
-            refetch();
-            queryClient.fetchQuery(KEY_WORDS);
-        }
-    });
+    const { isLoading: isLoadingComplete, mutate } = useMutateCompleteWord(id);
     const { isLoading, data, refetch } = useQueryWord(id, {
         retry: false,
         staleTime: Infinity,
@@ -37,6 +30,9 @@ export const WordShowPage = () => {
         refetchOnWindowFocus: false,
         onSuccess: (word: WordDto) => {
             setState({ ...state, complete: word.complete ? COMPLETE : PENDING });
+            setTimeout(() => {
+                playSpeechText();
+            }, 1000);
         },
         onError: (error: any) => {
             if (error.response.status === 404) {
@@ -50,14 +46,30 @@ export const WordShowPage = () => {
             }
         }
     });
-    const changeComplete = async (e: ChangeEvent<HTMLInputElement>) => {
+    const changeComplete = (e: ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value == COMPLETE ? PENDING : COMPLETE;
         setState({ ...state, complete: value });
-        mutate(value == COMPLETE);
+        mutate(value == COMPLETE, {
+            onSuccess: () => {
+                if (state.complete == COMPLETE) {
+                    toast.success('El texto ha sido marcado como completado');
+                } else {
+                    toast.success('El texto ha vuelto a marcarse para seguir recordandose');
+                }
+                refetch();
+                queryClient.refetchQueries(KEY_WORDS);
+            }
+        });
     };
     useEffect(() => {
         refetch();
     }, []);
+    const playSpeechText = () => {
+        const result = speech(data?.text || '');
+        if (result) {
+            toast.info(result);
+        }
+    };
     return !data ? null : (
         <fieldset disabled={isLoading || isLoadingComplete} className="h-100 page-user-details px-5 pt-4 pb-5">
             <div className="container h-100">
@@ -66,7 +78,18 @@ export const WordShowPage = () => {
                         <div className="card card-body">
                             <div className="row">
                                 <label className="form-label col-lg-6 col-md-6 col-sm-12">Texto</label>
-                                <span className="col-lg-auto col-md-6 col-sm-12">{data.text}</span>
+                                <div className="col-lg-auto col-md-6 col-sm-12">
+                                    <Link
+                                        to=""
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            playSpeechText();
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faVolumeHigh}></FontAwesomeIcon>
+                                    </Link>{' '}
+                                    {data.text}
+                                </div>
                             </div>
                             <div className="row">
                                 <label className="form-label col-lg-6 col-md-6 col-sm-12">Traducción</label>

@@ -165,13 +165,12 @@ export const RegisterPage = () => {
                                         />
                                         <div className="invalid-feedback">Contraseña</div>
                                     </div>
-                                    <div className="g-recaptcha mb-3">
-                                        <ReCAPTCHA
-                                            ref={captcha}
-                                            sitekey={environment.CAPTCHA_PUBLIC}
-                                            onChange={onChangeRecaptcha}
-                                        />
-                                    </div>
+                                    <ReCAPTCHA
+                                        ref={captcha}
+                                        sitekey={environment.CAPTCHA_PUBLIC}
+                                        onChange={onChangeRecaptcha}
+                                        className="mb-3 g-recaptcha"
+                                    />
                                     {captchaIsValid == false && (
                                         <div className="mb-3">
                                             <span className="text-danger">Por favor acepta el captcha !</span>

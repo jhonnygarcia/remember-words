@@ -61,7 +61,7 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     const { mutate, isLoading: saveLoading } = useMutateWord(wordId, {
         onSuccess: () => {
             toast.success('Operación realizada exitosamente');
-            queryClient.fetchQuery(KEY_WORDS);
+            queryClient.refetchQueries(KEY_WORDS);
         },
         onError: (res: any) => {
             helper.showMessageResponseError('warn', {

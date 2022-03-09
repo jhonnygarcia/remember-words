@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faInfoCircle, faPencil, faBell } from '@fortawesome/free-solid-svg-icons';
 
 import { Button, ButtonGroup, Table, ToggleButton } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
@@ -64,7 +64,7 @@ export const UsersPage = () => {
                 <div className="card-body">
                     <h5>Filtros</h5>
                     <div className="row mb-3">
-                        <div className="col">
+                        <div className="col-md-6 col-sm-12 col-lg-6">
                             <label className="mb-3">Buscar</label>
                             <input
                                 type="text"
@@ -80,7 +80,7 @@ export const UsersPage = () => {
                                 }}
                             />
                         </div>
-                        <div className="col">
+                        <div className="col-md-6 col-sm-12 col-lg-6">
                             <label className="mb-3">Activo</label>
                             <div>
                                 <ButtonGroup>
@@ -125,13 +125,21 @@ export const UsersPage = () => {
                     </thead>
                     <tbody>
                         {data?.data.map((user) => (
-                            <tr key={user._id}>
+                            <tr key={user._id} className="">
                                 <td>{user._id}</td>
                                 <td>{user.name}</td>
                                 <td>{user.username}</td>
                                 <td>{user.email}</td>
                                 <td>{getRoles(user.roles)}</td>
                                 <td className="text-center">
+                                    {user.hasNotify && (
+                                        <FontAwesomeIcon
+                                            title="Notificaciones habilitadas"
+                                            icon={faBell}
+                                            size="1x"
+                                            className="me-2 text-primary"
+                                        />
+                                    )}
                                     <Link to={`/users/${user._id}/show`} title="Detalle" className="me-2">
                                         <FontAwesomeIcon icon={faInfoCircle} size="1x" />
                                     </Link>

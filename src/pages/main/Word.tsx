@@ -2,7 +2,7 @@ import { ChangeEvent, useState } from 'react';
 
 import { Form } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faPencil, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPencil, faInfoCircle, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { useMutation, useQueryClient } from 'react-query';
 import { toast } from 'react-toastify';
 
@@ -13,6 +13,7 @@ import { useAppService } from '../../context/app.service';
 import { helper } from '../../common/helpers.function';
 import { Link } from 'react-router-dom';
 import { KEY_WORDS } from '../../hooks';
+import { speech } from '../../common/speech';
 
 interface Props {
     word: WordDto;
@@ -35,7 +36,7 @@ export default function Word({ word }: Props) {
     const { mutate: mutateRemove, isLoading: isLoadingRemove } = useMutation(() => appService.removeWord(word._id), {
         onSuccess: () => {
             toast.success('Texto eliminado !');
-            queryClient.fetchQuery(KEY_WORDS);
+            queryClient.refetchQueries(KEY_WORDS);
             setShowConfirm(false);
         },
         onError: (error: any) => {
@@ -51,7 +52,7 @@ export default function Word({ word }: Props) {
         },
         {
             onSuccess: () => {
-                queryClient.fetchQuery(KEY_WORDS);
+                queryClient.refetchQueries(KEY_WORDS);
             },
             onError: (error: any) => {
                 helper.showMessageResponseError('warn', {
@@ -67,11 +68,28 @@ export default function Word({ word }: Props) {
         setState({ ...state, complete: value });
         mutateEdit(value == COMPLETE);
     };
+    const playSpeechText = () => {
+        const result = speech(word.text || '');
+        if (result) {
+            toast.info(result);
+        }
+    };
     return (
         <>
             <div className="card card-body shadow-lg bg-body rounded">
                 <div className="d-flex justify-content-between">
-                    <h4 className="card-title text-break">{word.text}</h4>
+                    <h5 className="card-title text-break">
+                        <Link
+                            to=""
+                            onClick={(e) => {
+                                e.preventDefault();
+                                playSpeechText();
+                            }}
+                        >
+                            <FontAwesomeIcon icon={faVolumeHigh}></FontAwesomeIcon>
+                        </Link>{' '}
+                        {word.text}
+                    </h5>
                     <Form.Check
                         onChange={changeComplete}
                         value={state.complete}

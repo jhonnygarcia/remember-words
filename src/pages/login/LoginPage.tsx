@@ -1,5 +1,5 @@
 import './Login.css';
-import '../../Captcha.css';
+//import '../../Captcha.css';
 import { ChangeEvent, FormEvent, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
@@ -147,13 +147,12 @@ export const LoginPage = () => {
                                             <span className="text-danger">{message}</span>
                                         </div>
                                     )}
-                                    <div className="g-recaptcha mb-3">
-                                        <ReCAPTCHA
-                                            ref={captcha}
-                                            sitekey={environment.CAPTCHA_PUBLIC}
-                                            onChange={onChangeRecaptcha}
-                                        />
-                                    </div>
+                                    <ReCAPTCHA
+                                        ref={captcha}
+                                        sitekey={environment.CAPTCHA_PUBLIC}
+                                        onChange={onChangeRecaptcha}
+                                        className="mb-3 g-recaptcha"
+                                    />
                                     {captchaIsValid == false && (
                                         <div className="mb-3">
                                             <span className="text-danger">Por favor acepta el captcha !</span>
