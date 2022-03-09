@@ -68,8 +68,8 @@ export default function Word({ word }: Props) {
         setState({ ...state, complete: value });
         mutateEdit(value == COMPLETE);
     };
-    const playSpeechText = () => {
-        const result = speech(word.text || '');
+    const playSpeechText = async () => {
+        const result = await speech(word.text || '');
         if (result) {
             toast.info(result);
         }

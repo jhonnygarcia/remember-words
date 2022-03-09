@@ -1,12 +1,16 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
 
 import { Button, Form, Modal, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 import { FormControlValue, WordDto } from '../../dto';
 import { helper } from '../../common/helpers.function';
 import { KEY_WORDS, useMutateWord, useQueryWord } from '../../hooks/words.hook';
 import { useQueryClient } from 'react-query';
+import { Link } from 'react-router-dom';
 
 type HandleInputChange = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 interface Props {
@@ -29,6 +33,8 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     };
     const queryClient = useQueryClient();
     const [state, setState] = useState<StateFormWord>(initialState);
+    const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
+
     const { isLoading: getLoading, refetch } = useQueryWord(wordId, {
         enabled: false,
         onSuccess: (wordFound: WordDto) => {
@@ -101,7 +107,30 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
             }
         });
     };
-
+    const onStop = () => {
+        setState({ ...state, text: { ...state.text, value: transcript, dirty: true } });
+        resetTranscript();
+        SpeechRecognition.stopListening();
+    };
+    const onRecording = () => {
+        if (!navigator.onLine) {
+            toast.info('El reconocimiento de voz solo funciona con una conexion a internet');
+            return;
+        }
+        if (!browserSupportsSpeechRecognition) {
+            toast.info('Su navegador no soporta el uso del microfono');
+            return;
+        }
+        SpeechRecognition.startListening({
+            language: 'en'
+        });
+    };
+    useEffect(() => {
+        if ((transcript || '').length > 0) {
+            setState({ ...state, text: { ...state.text, value: transcript, dirty: true } });
+            resetTranscript();
+        }
+    }, [listening]);
     return (
         <Modal
             backdrop="static"
@@ -121,13 +150,29 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
         >
             <Modal.Header>
                 <Modal.Title>{wordId ? 'Editar texto' : 'Nuevo texto'}</Modal.Title>
+                <Link
+                    to="#"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        if (listening) {
+                            onStop();
+                        } else {
+                            onRecording();
+                        }
+                    }}
+                    type="button"
+                >
+                    <FontAwesomeIcon size="2x" icon={listening ? faMicrophone : faMicrophoneSlash} />
+                </Link>
             </Modal.Header>
             <Form onSubmit={onSubmit}>
                 <fieldset disabled={saveLoading || getLoading}>
                     <Modal.Body>
                         <div className="form-group mb-3">
-                            <input
-                                type="text"
+                            <textarea
+                                style={{ width: '100%' }}
+                                cols={30}
+                                rows={2}
                                 className={'form-control ' + helper.classValid(state.text)}
                                 placeholder="Texto"
                                 onChange={handleInputChange}
@@ -146,7 +191,7 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
                                 placeholder="Traducción"
                                 value={state.translation.value}
                                 onChange={handleInputChange}
-                            ></textarea>
+                            />
                             <div className="invalid-feedback">Requerido</div>
                         </div>
                         <div className="from-group">

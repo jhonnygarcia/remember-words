@@ -64,8 +64,8 @@ export const WordShowPage = () => {
     useEffect(() => {
         refetch();
     }, []);
-    const playSpeechText = () => {
-        const result = speech(data?.text || '');
+    const playSpeechText = async () => {
+        const result = await speech(data?.text || '');
         if (result) {
             toast.info(result);
         }
