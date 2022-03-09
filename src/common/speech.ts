@@ -1,17 +1,9 @@
-export const getVoices = (synth: SpeechSynthesis): Promise<SpeechSynthesisVoice[]> => {
-    return new Promise((resolve) => {
-        let voices = synth.getVoices();
-        if (voices.length) {
-            resolve(voices);
-            return;
-        }
-        synth.onvoiceschanged = () => {
-            voices = synth.getVoices();
-            resolve(voices);
-        };
-    });
-};
-
+let globalVoices: SpeechSynthesisVoice[] = [];
+if (window.speechSynthesis && globalVoices.length == 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+        globalVoices = window.speechSynthesis.getVoices();
+    };
+}
 export const speech = async (text: string): Promise<string | null> => {
     const synth = window.speechSynthesis;
     if (synth == null || synth == undefined) {
@@ -22,11 +14,11 @@ export const speech = async (text: string): Promise<string | null> => {
     }
     const textSpeech = (text || '').trim();
     if (text.length == 0) {
-        return 'Texto vacío';
+        return null;
     }
-    const voices = await getVoices(synth);
+    const voices = await loadVoices(synth);
     const utterThis = new SpeechSynthesisUtterance(textSpeech);
-    utterThis.onend = function (event) {};
+    utterThis.onend = function () {};
     utterThis.onerror = function (event) {
         console.error('ocurrio un error al reproducir', event);
     };
@@ -35,11 +27,24 @@ export const speech = async (text: string): Promise<string | null> => {
         return lang == 'en-us' || lang == 'en_us';
     });
     if (!enUS) {
-        return 'Su navegador no tiene soporte para el idioma Ingles';
+        return 'No se ha encontrado el soporte para el idioma ingles, intente nuevamente';
     }
     utterThis.voice = enUS;
     utterThis.pitch = 1;
     utterThis.rate = 0.85;
     synth.speak(utterThis);
     return null;
+};
+
+const loadVoices = (synth: SpeechSynthesis): Promise<SpeechSynthesisVoice[]> => {
+    return new Promise((resolve) => {
+        if (globalVoices.length > 0) {
+            resolve(globalVoices);
+        } else {
+            synth.onvoiceschanged = () => {
+                globalVoices = synth.getVoices();
+                resolve(globalVoices);
+            };
+        }
+    });
 };
