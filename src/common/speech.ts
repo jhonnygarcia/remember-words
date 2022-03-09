@@ -25,7 +25,6 @@ export const speech = async (text: string): Promise<string | null> => {
         return 'Texto vacío';
     }
     const voices = await getVoices(synth);
-    console.log(voices);
     const utterThis = new SpeechSynthesisUtterance(textSpeech);
     utterThis.onend = function (event) {};
     utterThis.onerror = function (event) {

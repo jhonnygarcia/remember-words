@@ -37,6 +37,7 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
 
     const { isLoading: getLoading, refetch } = useQueryWord(wordId, {
         enabled: false,
+        retry: false,
         onSuccess: (wordFound: WordDto) => {
             setState({
                 ...state,
@@ -58,8 +59,12 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
                 }
             });
         },
-        onError: () => {
-            toast.error('El recurso ha sido eliminado');
+        onError: (error: any) => {
+            if (error.response.status == 500) {
+                toast.error('Ha ocurrido un error inesperado al obtener el recurso');
+            } else {
+                toast.error('El recurso ha sido eliminado');
+            }
             close();
         }
     });

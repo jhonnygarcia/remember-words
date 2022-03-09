@@ -30,9 +30,6 @@ export const WordShowPage = () => {
         refetchOnWindowFocus: false,
         onSuccess: (word: WordDto) => {
             setState({ ...state, complete: word.complete ? COMPLETE : PENDING });
-            setTimeout(() => {
-                playSpeechText(word.text);
-            }, 1000);
         },
         onError: (error: any) => {
             if (error.response.status === 404) {
@@ -76,8 +73,9 @@ export const WordShowPage = () => {
                 <div className="row justify-content-sm-center h-100">
                     <div className="col-xl-8 col-lg-8 col-md-12 col-sm-10">
                         <div className="card card-body">
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Texto</label>
+                            <h3 className="text-center card-title">Detalle de texto</h3>
+                            <div className="row my-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Texto</label>
                                 <div className="col-lg-auto col-md-6 col-sm-12">
                                     <Link
                                         to=""
@@ -91,32 +89,32 @@ export const WordShowPage = () => {
                                     {data.text}
                                 </div>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Traducción</label>
+                            <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Traducción</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">{data.translation}</span>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Minutos</label>
+                            <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Minutos</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">{data.each_minutes}</span>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Repetir</label>
+                            <div className="row mb-2">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Repetir</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">{data.repeat_remember}</span>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Creado</label>
+                            <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Creado</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">
                                     {helper.toDateTimeFormat(data.created_at)}
                                 </span>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Completado</label>
+                            <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Completado</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">
                                     {helper.toDateTimeFormat(data.completed_at)}
                                 </span>
                             </div>
-                            <div className="row">
-                                <label className="form-label col-lg-6 col-md-6 col-sm-12">Completar</label>
+                            <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Completar</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">
                                     <Form.Check
                                         onChange={changeComplete}

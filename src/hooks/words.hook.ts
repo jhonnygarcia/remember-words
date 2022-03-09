@@ -5,6 +5,7 @@ import { CreateEditWordDto, WherePagedDto } from './../context/parameters';
 import { useAppService } from './../context/app.service';
 
 export const KEY_WORDS = 'words';
+export const KEY_WORDS_SINGLE = 'words-single';
 
 export const useMutateWord = (wordId?: string | null, options?: any) => {
     const appService = useAppService();
@@ -23,7 +24,7 @@ export const useMutateCompleteWord = (wordId: string, options?: any) => {
 export const useQueryWord = (wordId: any, options: any) => {
     const appService = useAppService();
     return useQuery<WordDto>(
-        [KEY_WORDS, wordId],
+        [KEY_WORDS_SINGLE, wordId],
         () => appService.getWord(wordId).then((res) => res.data as WordDto),
         options
     );
