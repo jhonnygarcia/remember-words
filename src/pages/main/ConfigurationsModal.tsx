@@ -1,42 +1,40 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
-
-import moment from 'moment';
+import { ChangeEvent, useState } from 'react';
 import { toast } from 'react-toastify';
-import { Form, Modal, ButtonGroup, ToggleButton, Spinner } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell } from '@fortawesome/free-solid-svg-icons';
+import { Form, Modal } from 'react-bootstrap';
 import { Button } from 'react-bootstrap';
 
-import { helper } from '../../common/helpers.function';
 import { checkNotifications, subriberPushMessages } from '../webpush.utility';
 import { registerServiceWorker } from '../../serviceWorker';
-import { useAppService } from '../../context/app.service';
 import { createHttpClient } from '../../common/http-comon';
-import { useQueryConfig, useMutateConfig } from '../../hooks/config.hook';
+import { useQueryConfig, useMutateConfig, KEY_CONFIG } from '../../hooks/config.hook';
 import { UserConfigDto } from '../../dto';
+import { useQueryClient } from 'react-query';
 
 interface Props {
     show: boolean;
     close: () => void;
 }
 
-export const ConfigModal = ({ show, close }: Props) => {
+export const ConfigurationsModal = ({ show, close }: Props) => {
     const [notify, setNotify] = useState(0);
     const [sound, setSound] = useState(0);
+    const [spanish, setSpanish] = useState(0);
     const { refetch } = useQueryConfig({
         enabled: false,
         onSuccess: (res: UserConfigDto) => {
             setNotify(res.active_notification == true ? 1 : 0);
             setSound(res.active_sound == true ? 1 : 0);
-        },
+            setSpanish(res.sort_spanish_first == true ? 1 : 0);
+        }
     });
-    const { mutateAsync, isLoading } = useMutateConfig();
+    const queryClient = useQueryClient();
+    const { mutate, isLoading } = useMutateConfig();
     const hasUserMedia = () => !!navigator.mediaDevices.getUserMedia;
 
     const enabledSound = () => {
         if (typeof MediaRecorder === 'undefined' || !hasUserMedia()) {
             toast.info(
-                'Tu navegador web no cumple los requisitos; por favor, actualiza a un navegador como Firefox o Google Chrome',
+                'Tu navegador web no cumple los requisitos; por favor, actualiza a un navegador como Firefox o Google Chrome'
             );
             return;
         }
@@ -55,15 +53,12 @@ export const ConfigModal = ({ show, close }: Props) => {
         }
 
         if (checkNotify.permission == 'denied') {
-            toast.info(
-                'Acceso denegado a las notificaciones, cambie los permisos para permitir acceso a esta pagína',
-            );
+            toast.info('Acceso denegado a las notificaciones, cambie los permisos para permitir acceso a esta pagína');
             return false;
         }
         const httpClient = createHttpClient();
         if (checkNotify.permission == 'granted') {
             await subriberPushMessages(serviceWorkerRegister, httpClient);
-            toast.success('¡Notificaciones habilitadas!');
             return true;
         }
         const permision = await Notification.requestPermission();
@@ -72,9 +67,7 @@ export const ConfigModal = ({ show, close }: Props) => {
             toast.success('¡Notificaciones habilitadas!');
             return true;
         }
-        toast.info(
-            'Acceso denegado a las notificaciones, no es posible habilitar las notificaciones',
-        );
+        toast.info('Acceso denegado a las notificaciones, no es posible habilitar las notificaciones');
         return false;
     };
 
@@ -88,41 +81,38 @@ export const ConfigModal = ({ show, close }: Props) => {
     const changeChequed = async (e: ChangeEvent<HTMLInputElement>) => {
         const value = Number(e.target.value) == 1 ? 0 : 1;
         if (e.target.name == 'notify') {
-            if (value == 1) {
-                await enabledNotifications();
-                await mutateAsync({ active_notification: true });
-            } else {
-                await mutateAsync(
-                    { active_notification: false },
-                    {
-                        onSuccess: () => {
-                            toast.success(
-                                'Su subscripción a las notificaciones se han desactivado',
-                            );
-                        },
-                    },
-                );
-            }
             setNotify(value);
-        } else {
-            if (value == 1) {
-                enabledSound();
-                await mutateAsync({ active_sound: true });
-            } else {
-                await mutateAsync({ active_sound: false });
-            }
-
+        } else if (e.target.name == 'sound') {
             setSound(value);
+        } else if (e.target.name == 'order_language') {
+            setSpanish(value);
         }
     };
+    const save = async () => {
+        let payload = {
+            active_sound: sound == 1,
+            active_notification: notify == 1,
+            sort_spanish_first: spanish == 1
+        };
+        if (payload.active_notification) {
+            const result = await enabledNotifications();
+            payload = { ...payload, active_notification: result };
+        }
+        if (payload.active_sound) {
+            enabledSound();
+        }
+        mutate(payload, {
+            onSuccess: () => {
+                toast.success('se guardó su nueva configuración');
+                queryClient.refetchQueries(KEY_CONFIG);
+            },
+            onError: () => {
+                toast.error('Ha ocurrido un error inesperado al modificar su configuración');
+            }
+        });
+    };
     return (
-        <Modal
-            backdrop="static"
-            onShow={refetch}
-            show={show}
-            onHide={closeButton}
-            onEscapeKeyDown={keyBoardEvent}
-        >
+        <Modal backdrop="static" onShow={refetch} show={show} onHide={closeButton} onEscapeKeyDown={keyBoardEvent}>
             <Modal.Header>
                 <Modal.Title>Permisos</Modal.Title>
             </Modal.Header>
@@ -148,10 +138,23 @@ export const ConfigModal = ({ show, close }: Props) => {
                             type="switch"
                         />
                     </div>
+                    <div className="d-flex flex-row justify-content-between">
+                        <label>{spanish ? 'Español <=> Ingles' : 'Ingles <=> Español'}</label>
+                        <Form.Check
+                            onChange={changeChequed}
+                            value={spanish}
+                            name="order_language"
+                            checked={spanish == 1}
+                            type="switch"
+                        />
+                    </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button variant="secondary" onClick={close}>
+                    <Button className="me-2" variant="secondary" onClick={close}>
                         Cerrar
+                    </Button>
+                    <Button variant="primary" onClick={save}>
+                        Guardar
                     </Button>
                 </Modal.Footer>
             </fieldset>

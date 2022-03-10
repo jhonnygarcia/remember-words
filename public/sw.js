@@ -242,7 +242,6 @@ function create_periodic_background_job(pushData) {
 }
 self.addEventListener('push', (e) => {
     const pushData = e.data.json();
-    console.log(pushData);
     const action = pushData.action;
     const sendDate = pushData.sendDate;
     const params = {

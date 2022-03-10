@@ -82,9 +82,11 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     });
 
     const handleInputChange = (e: HandleInputChange) => {
+        let inputValue = e.target.value;
+        inputValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
         setState({
             ...state,
-            [e.target.name]: { value: e.target.value, dirty: true }
+            [e.target.name]: { value: inputValue, dirty: true }
         });
     };
     const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -131,7 +133,8 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     };
     useEffect(() => {
         if ((transcript || '').length > 0) {
-            setState({ ...state, text: { ...state.text, value: transcript, dirty: true } });
+            const transcriptUpper = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+            setState({ ...state, text: { ...state.text, value: transcriptUpper, dirty: true } });
             resetTranscript();
         }
     }, [listening]);

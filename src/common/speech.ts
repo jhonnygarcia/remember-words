@@ -22,7 +22,7 @@ export const speech = async (text: string): Promise<string | null> => {
     }) || null;
 
     utterThis.voice = enUS;
-    utterThis.pitch = 1;
+    utterThis.pitch = 0.85;
     utterThis.rate = 0.85;
     synth.speak(utterThis);
     return null;

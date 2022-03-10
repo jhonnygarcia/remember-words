@@ -48,3 +48,10 @@ export const useMutateSendAllNofity = (options?: any) => {
         return appService.pushAllNotify(data.title, data.message);
     }, options || {});
 };
+
+export const useMutateDeleteNofity = (options?: any) => {
+    const appService = useAppService();
+    return useMutation((id: string) => {
+        return appService.deleteNotification(id);
+    }, options || {});
+};

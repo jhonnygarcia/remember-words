@@ -3,7 +3,7 @@ import { UserConfigDto } from '../dto';
 import { useAppService } from '../context/app.service';
 import { SaveConfigDto } from '../context/parameters';
 
-const KEY_CONFIG = 'config';
+export const KEY_CONFIG = 'config';
 
 export const useMutateConfig = () => {
     const appService = useAppService();

@@ -91,6 +91,11 @@ class AppService {
         return response;
     }
 
+    async deleteNotification(id: string): Promise<AxiosResponse> {
+        const response = await this.httpClient.delete(`/api/notifications/${id}`);
+        return response;
+    }
+
     async pushAllNotify(title: string, message: string): Promise<AxiosResponse> {
         const response = await this.httpClient.post('/api/send-notify', { title, message });
         return response;

@@ -13,4 +13,5 @@ export interface WherePagedDto {
 export interface SaveConfigDto {
     active_notification?: boolean;
     active_sound?: boolean;
+    sort_spanish_first?: boolean;
 }

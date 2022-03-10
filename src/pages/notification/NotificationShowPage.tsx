@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { appRoutes } from '../../common/app.routes';
 import { helper } from '../../common/helpers.function';
 import { NotificationDto } from '../../dto/notification.dto';
@@ -59,6 +59,13 @@ export const NotificationShowPage = () => {
                                 <span className="col-lg-auto col-md-auto col-sm-12">
                                     {helper.toDateTimeFormat(data?.open_at)}
                                 </span>
+                            </div>
+                            <div className="row mb-3">
+                                <div className="col-auto">
+                                    <Link className="btn btn-secondary" to={appRoutes.notifications}>
+                                        Notificaciones
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -152,7 +152,7 @@ export const Menu = ({ title, openConfig }: Props) => {
                                         }}
                                     >
                                         <FontAwesomeIcon className="icon-border-radios" size="1x" icon={faGear} />{' '}
-                                        Permisos
+                                        Configuración
                                     </Nav.Link>
                                 </div>
                             </div>

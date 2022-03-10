@@ -8,12 +8,16 @@ import Word from './Word';
 import { NewWord } from './NewWord';
 import { useQueryWords } from '../../hooks/words.hook';
 import { Paged, PagedInfo } from '../../components/Paged';
+import { useQueryConfig } from '../../hooks';
 
 export const MainPage = () => {
     const [search, setSearch] = useState('');
     const [paginate, setPaginate] = useState({
         perPage: 10,
         currentPage: 1
+    });
+    const { data: config } = useQueryConfig({
+        staleTime: Infinity
     });
     const { data, refetch } = useQueryWords(
         () => {
@@ -73,7 +77,7 @@ export const MainPage = () => {
                             </div>
                             {data?.data.map((word) => (
                                 <div key={word._id} className="col-sm-3 col-md-3 mt-2">
-                                    <Word word={word} />
+                                    <Word word={word} sort_spanish_first={config?.sort_spanish_first || false} />
                                 </div>
                             ))}
                         </div>

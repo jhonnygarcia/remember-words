@@ -5,7 +5,7 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 import { Home } from './pages/HomePage';
 import { MainPage } from './pages/main/MainPage';
 import { useState } from 'react';
-import { ConfigModal } from './pages/main/ConfigModal';
+import { ConfigurationsModal } from './pages/main/ConfigurationsModal';
 import { RegisterPage } from './pages/register/RegisterPage';
 import { UsersPage } from './pages/user/UsersPage';
 import { NoPrivilegesPage } from './pages/NoPrivilegesPage';
@@ -136,7 +136,7 @@ export const App = ({ title = 'default title' }: Props) => {
                 <Route path={appRoutes.forgotSuccess} element={<ForgotSuccessPage />}></Route>
                 <Route path={appRoutes.invalidKey} element={<InvalidKeyPage />}></Route>
             </Routes>
-            <ConfigModal show={state.show} close={closeModal} />
+            <ConfigurationsModal show={state.show} close={closeModal} />
         </div>
     );
 };

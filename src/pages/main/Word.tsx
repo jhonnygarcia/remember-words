@@ -17,12 +17,13 @@ import { speech } from '../../common/speech';
 
 interface Props {
     word: WordDto;
+    sort_spanish_first: boolean;
 }
 
 interface WordSate {
     complete: string;
 }
-export default function Word({ word }: Props) {
+export default function Word({ word, sort_spanish_first }: Props) {
     const COMPLETE = 'complete';
     const PENDING = 'pending';
     const initialState = {
@@ -88,7 +89,7 @@ export default function Word({ word }: Props) {
                         >
                             <FontAwesomeIcon icon={faVolumeHigh}></FontAwesomeIcon>
                         </Link>{' '}
-                        {word.text}
+                        {sort_spanish_first ? word.translation : word.text}
                     </h5>
                     <Form.Check
                         onChange={changeComplete}
@@ -97,7 +98,7 @@ export default function Word({ word }: Props) {
                         type="switch"
                     />
                 </div>
-                <p className="text-break">{word.translation}</p>
+                <p className="text-break">{sort_spanish_first ? word.text : word.translation}</p>
                 <div className="d-flex align-items-center justify-content-between">
                     <div>
                         <button
