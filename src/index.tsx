@@ -4,7 +4,7 @@ import 'react-bootstrap/dist/react-bootstrap.min.js';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
-import { ReactQueryDevtools } from 'react-query/devtools'
+import { ReactQueryDevtools } from 'react-query/devtools';
 
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
@@ -20,26 +20,24 @@ const queryClient = new QueryClient();
 ReactDOM.render(
     <React.StrictMode>
         <QueryClientProvider client={queryClient}>
-            {/* <GlobalStateProvider> */}
-                <BrowserRouter>
-                    <App title="Learning words" />
-                    <ToastContainer
-                        position="top-right"
-                        autoClose={5000}
-                        hideProgressBar={false}
-                        newestOnTop={false}
-                        closeOnClick
-                        rtl={false}
-                        pauseOnFocusLoss
-                        draggable
-                        pauseOnHover
-                    />
-                </BrowserRouter>
-            {/* </GlobalStateProvider> */}
+            <BrowserRouter>
+                <App title="Learn remember" />
+                <ToastContainer
+                    position="top-right"
+                    autoClose={4000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+            </BrowserRouter>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     </React.StrictMode>,
-    document.getElementById('root'),
+    document.getElementById('root')
 );
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

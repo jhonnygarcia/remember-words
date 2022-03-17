@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 import { Pagination } from 'react-bootstrap';
 export interface PagedInfo {
     totalPages: number;
@@ -25,25 +25,23 @@ const range = (from: number, to: number, step = 1) => {
 
     return range;
 };
-export const Paged = (props: PagedModel) => {
-    const [currentPage, setCurrentPage] = useState(props.currentPage || 1);
-
-    if (!props.totalRecords || props.pageSize <= 0) return null;
-    const totalPages = Math.ceil(props.totalRecords / props.pageSize);
+const PrivatePaged = ({ currentPage, pageSize, maxSize, totalRecords, onPageChange }: PagedModel) => {
+    if (!totalRecords || pageSize <= 0) return null;
+    const totalPages = Math.ceil(totalRecords / pageSize);
     if (totalPages === 1) return null;
 
     const fetchPageNumbers = (): any[] => {
-        if (totalPages > props.maxSize) {
-            let right = Math.ceil(props.maxSize / 2) - (props.maxSize % 2);
+        if (totalPages > maxSize) {
+            let right = Math.ceil(maxSize / 2) - (maxSize % 2);
             if (currentPage + right > totalPages) {
                 right = totalPages - currentPage;
             }
-            const left = props.maxSize - right - 1;
+            const left = maxSize - right - 1;
             let startPage = currentPage - left;
             let endPage = currentPage + right;
             if (startPage < 1) {
                 startPage = 1;
-                endPage = props.maxSize;
+                endPage = maxSize;
             }
             const pages = range(startPage, endPage);
             return pages;
@@ -51,13 +49,13 @@ export const Paged = (props: PagedModel) => {
         return range(1, totalPages);
     };
     const pages = fetchPageNumbers();
+
     const gotoPage = (page: number) => {
-        setCurrentPage(page);
-        props.onPageChange({
+        onPageChange({
             currentPage: page,
-            pageSize: props.pageSize,
+            pageSize: pageSize,
             totalPages: totalPages,
-            totalRecords: props.totalRecords
+            totalRecords: totalRecords
         });
     };
     const handleClick = (page: number) => {
@@ -69,12 +67,13 @@ export const Paged = (props: PagedModel) => {
     const handleMoveRight = () => {
         gotoPage(currentPage + 1);
     };
+
     return (
         <div className="d-flex flex-row flex-wrap justify-content-between">
             <span>
-                Mostrando desde {(currentPage - 1) * props.pageSize + 1} hasta{' '}
-                {currentPage * props.pageSize > props.totalRecords ? props.totalRecords : currentPage * props.pageSize}{' '}
-                de {props.totalRecords} registros
+                Mostrando desde {(currentPage - 1) * pageSize + 1} hasta{' '}
+                {currentPage * pageSize > totalRecords ? totalRecords : currentPage * pageSize} de {totalRecords}{' '}
+                registros
             </span>
             <Pagination>
                 <Pagination.First
@@ -95,7 +94,7 @@ export const Paged = (props: PagedModel) => {
                     return (
                         <Pagination.Item
                             key={index}
-                            active={currentPage == page}
+                            active={page == currentPage}
                             onClick={(e) => {
                                 e.preventDefault();
                                 handleClick(page);
@@ -123,3 +122,11 @@ export const Paged = (props: PagedModel) => {
         </div>
     );
 };
+export const Paged = React.memo(PrivatePaged, (prev, next) => {
+    return (
+        prev.currentPage == next.currentPage &&
+        prev.maxSize == next.maxSize &&
+        prev.pageSize == next.pageSize &&
+        prev.totalRecords == next.totalRecords
+    );
+});

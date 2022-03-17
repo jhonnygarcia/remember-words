@@ -1,16 +1,13 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 
 import { Button, Form, Modal, Spinner } from 'react-bootstrap';
 import { toast } from 'react-toastify';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 import { FormControlValue, WordDto } from '../../dto';
 import { helper } from '../../common/helpers.function';
 import { KEY_WORDS, useMutateWord, useQueryWord } from '../../hooks/words.hook';
 import { useQueryClient } from 'react-query';
-import { Link } from 'react-router-dom';
+import { TextAreaMicrofone } from '../../components/TextAreaMicrofone';
 
 type HandleInputChange = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 interface Props {
@@ -25,6 +22,8 @@ interface StateFormWord {
     repeat_remember: FormControlValue<number | string>;
 }
 export const WordFormModal = ({ wordId, show, close }: Props) => {
+    const COMPLETE = 'complete';
+    const PENDING = 'pending';
     const initialState = {
         text: { value: '', dirty: false },
         translation: { value: '', dirty: false },
@@ -33,12 +32,18 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     };
     const queryClient = useQueryClient();
     const [state, setState] = useState<StateFormWord>(initialState);
-    const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
+    const [complete, setComplete] = useState(PENDING);
+    const [fakeText, setFakeText] = useState(false);
+    const [fakeTranslate, setFakeTranslate] = useState(false);
+    const [fakeComment, setFakeComment] = useState(false);
+    const [comment, setComment] = useState('');
 
     const { isLoading: getLoading, refetch } = useQueryWord(wordId, {
         enabled: false,
         retry: false,
         onSuccess: (wordFound: WordDto) => {
+            setComplete(wordFound.complete ? COMPLETE : PENDING);
+            setComment(wordFound.comment || '');
             setState({
                 ...state,
                 text: { ...state.text, value: wordFound.text || '', dirty: true },
@@ -82,15 +87,18 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
     });
 
     const handleInputChange = (e: HandleInputChange) => {
-        let inputValue = e.target.value;
-        inputValue = inputValue.charAt(0).toUpperCase() + inputValue.slice(1);
-        setState({
-            ...state,
-            [e.target.name]: { value: inputValue, dirty: true }
-        });
+        if (e.target.name == 'comment') {
+            setComment(e.target.value);
+        } else {
+            setState({
+                ...state,
+                [e.target.name]: { value: e.target.value, dirty: true }
+            });
+        }
     };
     const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
         setState({
             ...state,
             text: { ...state.text, dirty: true },
@@ -101,43 +109,43 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
         const isValid = helper.isValid([state.text, state.translation]);
         if (!isValid) return;
 
-        const payload = {
+        const payload: any = {
             each_minutes: state.each_minutes.value == '' ? undefined : state.each_minutes.value,
             repeat_remember: state.repeat_remember.value == '' ? undefined : state.repeat_remember.value,
             text: state.text.value,
-            translation: state.translation.value
+            translation: state.translation.value,
+            comment
         };
+        if (wordId) {
+            payload.complete = complete == COMPLETE ? true : false;
+        }
         mutate(payload, {
+            onError: (error: any) => {
+                if (error.response == null || error.response.status == 500) {
+                    toast.error('Ocurrio un error inesperado');
+                    return;
+                }
+                const message = error.response.data.message;
+                if (typeof message == 'string') {
+                    toast.warn(message);
+                } else {
+                    toast.warn(message[0]);
+                }
+            },
             onSuccess: () => {
-                if (!wordId) setState(initialState);
+                if (!wordId) {
+                    toast.success('Operación realizada exitosamente', {
+                        autoClose: 1000
+                    });
+                    setState(initialState);
+                }
             }
         });
     };
-    const onStop = () => {
-        setState({ ...state, text: { ...state.text, value: transcript, dirty: true } });
-        resetTranscript();
-        SpeechRecognition.stopListening();
+    const changeComplete = async (e: ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value == COMPLETE ? PENDING : COMPLETE;
+        setComplete(value);
     };
-    const onRecording = () => {
-        if (!navigator.onLine) {
-            toast.info('El reconocimiento de voz solo funciona con una conexion a internet');
-            return;
-        }
-        if (!browserSupportsSpeechRecognition) {
-            toast.info('Su navegador no soporta el uso del microfono');
-            return;
-        }
-        SpeechRecognition.startListening({
-            language: 'en'
-        });
-    };
-    useEffect(() => {
-        if ((transcript || '').length > 0) {
-            const transcriptUpper = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-            setState({ ...state, text: { ...state.text, value: transcriptUpper, dirty: true } });
-            resetTranscript();
-        }
-    }, [listening]);
     return (
         <Modal
             backdrop="static"
@@ -157,26 +165,36 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
         >
             <Modal.Header>
                 <Modal.Title>{wordId ? 'Editar texto' : 'Nuevo texto'}</Modal.Title>
-                <Link
-                    to="#"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        if (listening) {
-                            onStop();
-                        } else {
-                            onRecording();
-                        }
-                    }}
-                    type="button"
-                >
-                    <FontAwesomeIcon size="2x" icon={listening ? faMicrophone : faMicrophoneSlash} />
-                </Link>
+                {wordId && (
+                    <Form.Check
+                        onChange={changeComplete}
+                        value={complete}
+                        checked={complete == COMPLETE}
+                        type="switch"
+                    />
+                )}
             </Modal.Header>
             <Form onSubmit={onSubmit}>
                 <fieldset disabled={saveLoading || getLoading}>
                     <Modal.Body>
                         <div className="form-group mb-3">
-                            <textarea
+                            <TextAreaMicrofone
+                                language="en-US"
+                                fake={fakeText}
+                                init={() => {
+                                    setFakeComment(true);
+                                    setFakeTranslate(true);
+                                }}
+                                finish={() => {
+                                    setFakeComment(false);
+                                    setFakeTranslate(false);
+                                }}
+                                speech={(speech) =>
+                                    setState({
+                                        ...state,
+                                        text: { value: speech, dirty: true }
+                                    })
+                                }
                                 style={{ width: '100%' }}
                                 cols={30}
                                 rows={2}
@@ -189,17 +207,56 @@ export const WordFormModal = ({ wordId, show, close }: Props) => {
                             <div className="invalid-feedback">Requerido</div>
                         </div>
                         <div className="form-group mb-3">
-                            <textarea
+                            <TextAreaMicrofone
+                                language="es-ES"
+                                fake={fakeTranslate}
+                                init={() => {
+                                    setFakeComment(true);
+                                    setFakeText(true);
+                                }}
+                                finish={() => {
+                                    setFakeComment(false);
+                                    setFakeText(false);
+                                }}
+                                speech={(speech) =>
+                                    setState({
+                                        ...state,
+                                        translation: { value: speech, dirty: true }
+                                    })
+                                }
                                 className={'form-control ' + helper.classValid(state.translation)}
                                 style={{ width: '100%' }}
-                                name="translation"
                                 cols={30}
                                 rows={3}
                                 placeholder="Traducción"
-                                value={state.translation.value}
                                 onChange={handleInputChange}
+                                name="translation"
+                                value={state.translation.value}
                             />
                             <div className="invalid-feedback">Requerido</div>
+                        </div>
+                        <div className="form-group mb-3">
+                            <TextAreaMicrofone
+                                language="es-ES"
+                                fake={fakeComment}
+                                init={() => {
+                                    setFakeTranslate(true);
+                                    setFakeText(true);
+                                }}
+                                finish={() => {
+                                    setFakeTranslate(false);
+                                    setFakeText(false);
+                                }}
+                                speech={(speech) => setComment(speech)}
+                                className="form-control"
+                                style={{ width: '100%' }}
+                                cols={30}
+                                rows={3}
+                                placeholder="Comentarios"
+                                onChange={handleInputChange}
+                                name="comment"
+                                value={comment}
+                            />
                         </div>
                         <div className="from-group">
                             <div className="row">

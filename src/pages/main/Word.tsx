@@ -1,6 +1,4 @@
-import { ChangeEvent, useState } from 'react';
-
-import { Form } from 'react-bootstrap';
+import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPencil, faInfoCircle, faVolumeHigh } from '@fortawesome/free-solid-svg-icons';
 import { useMutation, useQueryClient } from 'react-query';
@@ -19,20 +17,10 @@ interface Props {
     word: WordDto;
     sort_spanish_first: boolean;
 }
-
-interface WordSate {
-    complete: string;
-}
 export default function Word({ word, sort_spanish_first }: Props) {
-    const COMPLETE = 'complete';
-    const PENDING = 'pending';
-    const initialState = {
-        complete: word.complete ? COMPLETE : PENDING
-    };
     const appService = useAppService();
     const [showEditModal, setShowEditModal] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
-    const [state, setState] = useState<WordSate>(initialState);
     const queryClient = useQueryClient();
     const { mutate: mutateRemove, isLoading: isLoadingRemove } = useMutation(() => appService.removeWord(word._id), {
         onSuccess: () => {
@@ -47,28 +35,6 @@ export default function Word({ word, sort_spanish_first }: Props) {
             });
         }
     });
-    const { mutate: mutateEdit } = useMutation(
-        (completed: boolean) => {
-            return appService.editWord(word._id, { complete: completed });
-        },
-        {
-            onSuccess: () => {
-                queryClient.refetchQueries(KEY_WORDS);
-            },
-            onError: (error: any) => {
-                helper.showMessageResponseError('warn', {
-                    response: error.response,
-                    statusCodes: [404]
-                });
-            }
-        }
-    );
-
-    const changeComplete = async (e: ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value == COMPLETE ? PENDING : COMPLETE;
-        setState({ ...state, complete: value });
-        mutateEdit(value == COMPLETE);
-    };
     const playSpeechText = async () => {
         const result = await speech(word.text || '');
         if (result) {
@@ -77,7 +43,7 @@ export default function Word({ word, sort_spanish_first }: Props) {
     };
     return (
         <>
-            <div className="card card-body shadow-lg bg-body rounded">
+            <div className={'card card-body shadow-lg bg-body rounded' + (word.complete ? ' word-complete' : '')}>
                 <div className="d-flex justify-content-between">
                     <h5 className="card-title text-break">
                         <Link
@@ -91,12 +57,6 @@ export default function Word({ word, sort_spanish_first }: Props) {
                         </Link>{' '}
                         {sort_spanish_first ? word.translation : word.text}
                     </h5>
-                    <Form.Check
-                        onChange={changeComplete}
-                        value={state.complete}
-                        checked={state.complete == COMPLETE}
-                        type="switch"
-                    />
                 </div>
                 <p className="text-break">{sort_spanish_first ? word.text : word.translation}</p>
                 <div className="d-flex align-items-center justify-content-between">

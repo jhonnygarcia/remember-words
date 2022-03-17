@@ -2,6 +2,7 @@ export interface WordDto {
     _id: string;
     text: string;
     translation: string;
+    comment: string;
     each_minutes: number;
     repeat_remember: number;
     complete: boolean;

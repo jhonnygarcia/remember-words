@@ -94,6 +94,10 @@ export const WordShowPage = () => {
                                 <span className="col-lg-auto col-md-auto col-sm-12">{data.translation}</span>
                             </div>
                             <div className="row mb-3">
+                                <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Comentarios</label>
+                                <span className="col-lg-auto col-md-auto col-sm-12">{data.comment}</span>
+                            </div>
+                            <div className="row mb-3">
                                 <label className="form-label fw-bold col-lg-6 col-md-6 col-sm-12">Minutos</label>
                                 <span className="col-lg-auto col-md-auto col-sm-12">{data.each_minutes}</span>
                             </div>

@@ -9,3 +9,7 @@ body {
 code {
     font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
+
+div.card.card-body.word-complete {
+    background-color: #d3d3d3 !important;
+}

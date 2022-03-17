@@ -30,14 +30,11 @@ export const useQueryWord = (wordId: any, options: any) => {
     );
 };
 
-export const useQueryWords = (queryFn: () => WherePagedDto, options?: any) => {
-    const appService = useAppService();
-    const payload = queryFn();
-    return useQuery<PagedListDto<WordDto>>(
-        [KEY_WORDS],
-        () => {
-            return appService.getWords(payload).then((res) => res.data as PagedListDto<WordDto>);
-        },
-        options || {}
-    );
+export const useQueryWords = (queryParameters: () => WherePagedDto, options?: any) => {
+    const queryFunction = () => {
+        const appService = useAppService();
+        const payload = queryParameters();
+        return appService.getWords(payload).then((res) => res.data as PagedListDto<WordDto>);
+    };
+    return useQuery<PagedListDto<WordDto>>([KEY_WORDS], queryFunction, options || {});
 };
